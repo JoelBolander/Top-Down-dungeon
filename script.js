@@ -5,7 +5,7 @@ CANVAS.height = innerHeight * 0.8;
 CANVAS.width = CANVAS.height * 1.5;
 
 const TILESIZE = CANVAS.width * 0.065;
-let acceleration = 0.4;
+let acceleration = 0.2;
 
 let player = {
   pos: [2 * TILESIZE, 2 * TILESIZE],
@@ -15,11 +15,52 @@ let player = {
   acc: [0, 0],
 };
 
+function generateMonster(room) {
+  // monsterPos = room.tiles[Math.random() * room.tile.length] 
+  let pos = [10, 20]
+  let health = 10
+  let damage = 10
+  let acc = [0, 0]
+  let vel = [0, 0]
+  let maxVel = 8
+
+  let monster = {
+    pos,
+    health,
+    damage,
+    acc,
+    vel,
+    maxVel,
+  }
+  return monster
+}
+
+// function moveMonster(thisMonster) {
+//   let targetVelX;
+//   let targetVelY;
+
+//   // calculate acceleration based on distance to desired velocity
+//   obj.acc[0] = (targetVelX - obj.vel[0]) * acceleration;
+//   obj.acc[1] = (targetVelY - obj.vel[1]) * acceleration;
+  
+//   // apply acceleration and velocity
+//   obj.vel[0] += obj.acc[0];
+//   obj.vel[1] += obj.acc[1];
+  
+//   obj.pos[0] += player.vel[0] * TILESIZE * 0.01;
+//   obj.pos[1] += player.vel[1] * TILESIZE * 0.01;
+// }
+
+let monster = generateMonster([])
+
+let monsters = [monster]
+
 function move(obj) {
   let targetVelX;
   let targetVelY;
 
-  // find desired velocity (the velocity the player will reach with the current keys pressed)
+  if (obj === player) {
+    // find desired velocity (the velocity the player will reach with the current keys pressed)
   // 1. if no direction pressed
   if (!(obj.up ^ obj.down || obj.left ^ obj.right)) {
     targetVelX = targetVelY = 0;
@@ -58,6 +99,13 @@ function move(obj) {
       targetVelX = obj.maxVel / Math.sqrt(2);
     }
   }
+  } else {
+    
+    let angle = Math.atan(Math.abs(player.pos[0] - obj.pos[0])/Math.abs(player.pos[1] - obj.pos[1]))
+    targetVelX = Math.cos(angle) * obj.maxVel
+    targetVelY = Math.sin(angle) * obj.maxVel
+  
+  } 
 
   // calculate acceleration based on distance to desired velocity
   obj.acc[0] = (targetVelX - obj.vel[0]) * acceleration;
@@ -67,8 +115,8 @@ function move(obj) {
   obj.vel[0] += obj.acc[0];
   obj.vel[1] += obj.acc[1];
 
-  obj.pos[0] += player.vel[0] * TILESIZE * 0.01;
-  obj.pos[1] += player.vel[1] * TILESIZE * 0.01;
+  obj.pos[0] += obj.vel[0] * TILESIZE * 0.01;
+  obj.pos[1] += obj.vel[1] * TILESIZE * 0.01;
 }
 
 document.addEventListener("keydown", (e) => {
@@ -107,6 +155,10 @@ document.addEventListener("keyup", (e) => {
 function animate() {
   move(player);
 
+  for (let index = 0; index < monsters.length; index++) {
+    move(monsters[index])
+  }
+
   CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
 
   // draw player
@@ -116,6 +168,16 @@ function animate() {
     player.size,
     player.size
   );
+
+
+  for (let index = 0; index < monsters.length; index++) {
+    CTX.fillRect(
+      monsters[index].pos[0] - player.size / 2,
+      monsters[index].pos[1] - player.size / 2,
+      player.size,
+      player.size,
+    )
+  }
 
   requestAnimationFrame(animate);
 }
