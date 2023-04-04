@@ -5,7 +5,7 @@ CANVAS.height = innerHeight * 0.8;
 CANVAS.width = CANVAS.height * 1.5;
 
 const TILESIZE = CANVAS.width * 0.065;
-let acceleration = 0.4;
+let acceleration = 0.2;
 
 let player = {
   pos: [2 * TILESIZE, 2 * TILESIZE],
@@ -67,8 +67,8 @@ function move(obj) {
   obj.vel[0] += obj.acc[0];
   obj.vel[1] += obj.acc[1];
 
-  obj.pos[0] += player.vel[0] * TILESIZE * 0.01;
-  obj.pos[1] += player.vel[1] * TILESIZE * 0.01;
+  obj.pos[0] += obj.vel[0] * TILESIZE * 0.01;
+  obj.pos[1] += obj.vel[1] * TILESIZE * 0.01;
 }
 
 document.addEventListener("keydown", (e) => {
