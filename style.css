@@ -5,7 +5,6 @@
 #myCanvas {
   display: block;
   border: 2px solid black;
-  /* height: 80vh; */
   aspect-ratio: 1.5;
   margin: auto;
   margin-top: 10vh;
