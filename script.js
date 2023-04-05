@@ -1,16 +1,23 @@
+// canvas things
 window.focus;
 const CANVAS = document.getElementById("myCanvas");
 const CTX = CANVAS.getContext("2d");
 CANVAS.height = innerHeight * 0.8;
 CANVAS.width = CANVAS.height * 1.5;
 
+// declaring variables
 const TILESIZE = CANVAS.width * 0.065;
 let acceleration = 0.2;
+let mouseX = 0;
+let mouseY = 0;
+const MONSTER_SIZE = 0.75;
+const MONSTER_SPEED = 10;
+const MONSTER_X = 0;
+const MONSTER_Y = 2 * TILESIZE;
+const MONSTER_HEALTH = 10;
+const MONSTER_DAMAGE = 10;
 
-let mouseX = 0
-let mouseY = 0
-
-let player = {
+const PLAYER = {
   pos: [2 * TILESIZE, 2 * TILESIZE],
   size: TILESIZE,
   vel: [0, 0], // velocity unit - millitiles per frame
@@ -20,13 +27,14 @@ let player = {
 
 function generateMonster(room) {
   // monsterPos = room.tiles[Math.random() * room.tile.length]
-  let pos = [100, 200];
-  let size = TILESIZE * Math.random();
-  let health = 10;
-  let damage = 10;
+  let pos = [MONSTER_X, MONSTER_Y];
+  let size = TILESIZE * MONSTER_SIZE;
+  let health = MONSTER_HEALTH;
+  let damage = MONSTER_DAMAGE;
   let vel = [0, 0];
-  let maxVel = Math.random() * 5 + 5;
+  let maxVel = MONSTER_SPEED;
   let acc = [0, 0];
+  let angle = 0;
 
   let monster = {
     pos,
@@ -36,6 +44,7 @@ function generateMonster(room) {
     vel,
     maxVel,
     acc,
+    angle,
   };
   return monster;
 }
@@ -44,8 +53,9 @@ function move(obj) {
   let targetVelX;
   let targetVelY;
 
-  if (obj === player) {
-    // find desired velocity (the velocity the player will reach with the current keys pressed)
+  if (obj === PLAYER) {
+    // find desired velocity (the velocity the PLAYER will reach with the current keys pressed)
+
     // 1. if no direction pressed
     if (!(obj.up ^ obj.down || obj.left ^ obj.right)) {
       targetVelX = targetVelY = 0;
@@ -85,18 +95,23 @@ function move(obj) {
       }
     }
   } else {
-    let angle = Math.atan(
-      (player.pos[1] - obj.pos[1]) / (player.pos[0] - obj.pos[0])
+    // finding angle between player and monster
+    let angle = Math.atan2(
+      PLAYER.pos[1] - obj.pos[1],
+      PLAYER.pos[0] - obj.pos[0]
     );
-    if (player.pos[0] - obj.pos[0] < 0) {
-      angle += Math.PI;
-    }
-    let distance = Math.sqrt((player.pos[1] - obj.pos[1]) ** 2 + (player.pos[0] - obj.pos[0]) ** 2) / TILESIZE
+    // calculatig distance to player
+    let distance =
+      Math.sqrt(
+        (PLAYER.pos[1] - obj.pos[1]) ** 2 + (PLAYER.pos[0] - obj.pos[0]) ** 2
+      ) / TILESIZE;
+    // finding desired velocity
     targetVelX = Math.cos(angle) * obj.maxVel;
     targetVelY = Math.sin(angle) * obj.maxVel;
+    // slow down if close to player
     if (distance < 1) {
-      targetVelX *= (distance - 1)
-      targetVelY *= (distance - 1)
+      targetVelX *= distance - 1;
+      targetVelY *= distance - 1;
     }
   }
 
@@ -107,7 +122,6 @@ function move(obj) {
   // apply acceleration and velocity
   obj.vel[0] += obj.acc[0];
   obj.vel[1] += obj.acc[1];
-
   obj.pos[0] += obj.vel[0] * TILESIZE * 0.01;
   obj.pos[1] += obj.vel[1] * TILESIZE * 0.01;
 }
@@ -117,89 +131,77 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (e.key === "w") {
-    player.up = true;
+    PLAYER.up = true;
   }
   if (e.key === "a") {
-    player.left = true;
+    PLAYER.left = true;
   }
   if (e.key === "s") {
-    player.down = true;
+    PLAYER.down = true;
   }
   if (e.key === "d") {
-    player.right = true;
+    PLAYER.right = true;
   }
 });
 
 document.addEventListener("keyup", (e) => {
   if (e.key === "w") {
-    player.up = false;
+    PLAYER.up = false;
   }
   if (e.key === "a") {
-    player.left = false;
+    PLAYER.left = false;
   }
   if (e.key === "s") {
-    player.down = false;
+    PLAYER.down = false;
   }
   if (e.key === "d") {
-    player.right = false;
+    PLAYER.right = false;
   }
 });
 
 document.addEventListener("mousemove", (e) => {
-  const canvasRect = CANVAS.getBoundingClientRect();
-  mouseX = e.clientX - canvasRect.left;
-  mouseY = e.clientY - canvasRect.top;
+  const CANVASRECT = CANVAS.getBoundingClientRect();
+  mouseX = e.clientX - CANVASRECT.left;
+  mouseY = e.clientY - CANVASRECT.top;
 });
 
 function animate() {
-  // calculate positions
-  move(player);
-
-  for (let index = 0; index < monsters.length; index++) {
-    move(monsters[index]);
-  }
-
-  // Clear canvas
+  // clear canvas
   CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
 
-  // Draw player
-  const deltaX = player.pos[0] - mouseX;
-  const deltaY = player.pos[1] - mouseY;
+  // calculate player
+  move(PLAYER);
+  // angle
+  const DELTA_X = PLAYER.pos[0] - mouseX;
+  const DELTA_Y = PLAYER.pos[1] - mouseY;
+  let angle = Math.atan2(DELTA_Y, DELTA_X) - Math.PI / 2;
 
-  // calculate angle
-  let angle = Math.atan2(deltaY, deltaX) - Math.PI / 2;
-  // if (angle < -Math.PI/2) {
-  //   angle += 2*Math.PI;
-  // } else if (angle > Math.PI/2) {
-  //   angle -= 2*Math.PI;
-  // }
+  // calculate monster
+  for (let i = 0; i < monsters.length; i++) {
+    move(monsters[i]);
+    const deltaXMonster = monsters[i].pos[0] - PLAYER.pos[0];
+    const deltaYMonster = monsters[i].pos[1] - PLAYER.pos[1];
+    monsters[i].angle = Math.atan2(deltaYMonster, deltaXMonster);
+  }
 
-  // Rotate canvas in order to draw player
+  // rotate canvas in order to draw player
   CTX.save();
-  CTX.translate(player.pos[0], player.pos[1]);
+  CTX.translate(PLAYER.pos[0], PLAYER.pos[1]);
   CTX.rotate(angle);
-  CTX.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+  CTX.fillRect(-PLAYER.size / 2, -PLAYER.size / 2, PLAYER.size, PLAYER.size);
   CTX.restore();
 
   for (let i = 0; i < monsters.length; i++) {
-    const deltaXMonster = monsters[i].pos[0] - player.pos[0];
-    const deltaYMonster =  monsters[i].pos[1] - player.pos[1];
-    let monsterangle = Math.atan2(deltaYMonster, deltaXMonster);
-    if (monsterangle < -Math.PI/2) {
-        monsterangle += 2*Math.PI;
-      } else if (monsterangle > Math.PI/2) {
-        monsterangle -= 2*Math.PI;
-      }
     CTX.save();
     CTX.translate(monsters[i].pos[0], monsters[i].pos[1]);
-    CTX.rotate(monsterangle);
+    CTX.rotate(monsters[i].angle);
     CTX.fillRect(
-      monsters[i].pos[0] - monsters[i].size / 2,
-      monsters[i].pos[1] - monsters[i].size / 2,
+      -monsters[i].size / 2,
+      -monsters[i].size / 2,
       monsters[i].size,
       monsters[i].size
     );
-    CTX.restore()
+    CTX.restore();
   }
 
   requestAnimationFrame(animate);
@@ -210,6 +212,6 @@ let monster = generateMonster([]);
 let monsters = [monster];
 // for (let i = 0; i < 1000; i++) {
 //   monsters.push(generateMonster([]));
-//  }
+// }
 
 animate();
