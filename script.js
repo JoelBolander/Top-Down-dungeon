@@ -7,11 +7,14 @@ CANVAS.width = CANVAS.height * 1.5;
 const TILESIZE = CANVAS.width * 0.065;
 let acceleration = 0.2;
 
+let mouseX = 0
+let mouseY = 0
+
 let player = {
   pos: [2 * TILESIZE, 2 * TILESIZE],
   size: TILESIZE,
   vel: [0, 0], // velocity unit - millitiles per frame
-  maxVel: 20,
+  maxVel: 10.5,
   acc: [0, 0],
 };
 
@@ -22,7 +25,7 @@ function generateMonster(room) {
   let health = 10;
   let damage = 10;
   let vel = [0, 0];
-  let maxVel = Math.random() * 20;
+  let maxVel = Math.random() * 5 + 5;
   let acc = [0, 0];
 
   let monster = {
@@ -88,8 +91,13 @@ function move(obj) {
     if (player.pos[0] - obj.pos[0] < 0) {
       angle += Math.PI;
     }
+    let distance = Math.sqrt((player.pos[1] - obj.pos[1]) ** 2 + (player.pos[0] - obj.pos[0]) ** 2) / TILESIZE
     targetVelX = Math.cos(angle) * obj.maxVel;
     targetVelY = Math.sin(angle) * obj.maxVel;
+    if (distance < 1) {
+      targetVelX *= (distance - 1)
+      targetVelY *= (distance - 1)
+    }
   }
 
   // calculate acceleration based on distance to desired velocity
@@ -137,30 +145,61 @@ document.addEventListener("keyup", (e) => {
   }
 });
 
+document.addEventListener("mousemove", (e) => {
+  const canvasRect = CANVAS.getBoundingClientRect();
+  mouseX = e.clientX - canvasRect.left;
+  mouseY = e.clientY - canvasRect.top;
+});
+
 function animate() {
+  // calculate positions
   move(player);
 
   for (let index = 0; index < monsters.length; index++) {
     move(monsters[index]);
   }
 
+  // Clear canvas
   CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
 
-  // draw player
-  CTX.fillRect(
-    player.pos[0] - player.size / 2,
-    player.pos[1] - player.size / 2,
-    player.size,
-    player.size
-  );
+  // Draw player
+  const deltaX = player.pos[0] - mouseX;
+  const deltaY = player.pos[1] - mouseY;
+
+  // calculate angle
+  let angle = Math.atan2(deltaY, deltaX) - Math.PI / 2;
+  // if (angle < -Math.PI/2) {
+  //   angle += 2*Math.PI;
+  // } else if (angle > Math.PI/2) {
+  //   angle -= 2*Math.PI;
+  // }
+
+  // Rotate canvas in order to draw player
+  CTX.save();
+  CTX.translate(player.pos[0], player.pos[1]);
+  CTX.rotate(angle);
+  CTX.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+  CTX.restore();
 
   for (let i = 0; i < monsters.length; i++) {
+    const deltaXMonster = monsters[i].pos[0] - player.pos[0];
+    const deltaYMonster =  monsters[i].pos[1] - player.pos[1];
+    let monsterangle = Math.atan2(deltaYMonster, deltaXMonster);
+    if (monsterangle < -Math.PI/2) {
+        monsterangle += 2*Math.PI;
+      } else if (monsterangle > Math.PI/2) {
+        monsterangle -= 2*Math.PI;
+      }
+    CTX.save();
+    CTX.translate(monsters[i].pos[0], monsters[i].pos[1]);
+    CTX.rotate(monsterangle);
     CTX.fillRect(
       monsters[i].pos[0] - monsters[i].size / 2,
       monsters[i].pos[1] - monsters[i].size / 2,
       monsters[i].size,
       monsters[i].size
     );
+    CTX.restore()
   }
 
   requestAnimationFrame(animate);
@@ -169,8 +208,8 @@ function animate() {
 let monster = generateMonster([]);
 
 let monsters = [monster];
-for (let i = 0; i < 1000; i++) {
-  monsters.push(generateMonster([]));
-}
+// for (let i = 0; i < 1000; i++) {
+//   monsters.push(generateMonster([]));
+//  }
 
 animate();
