@@ -6,12 +6,12 @@ CANVAS.height = innerHeight * 0.8;
 CANVAS.width = CANVAS.height * 1.5;
 
 // declaring variables
-const TILESIZE = CANVAS.width * 0.065;
+const TILESIZE = CANVAS.width * 0.055;
 let acceleration = 0.2;
 let mouseX = 0;
 let mouseY = 0;
 const MONSTER_SIZE = 0.75;
-const MONSTER_SPEED = 10;
+const MONSTER_SPEED = 2.5;
 const MONSTER_X = 0;
 const MONSTER_Y = 2 * TILESIZE;
 const MONSTER_HEALTH = 10;
@@ -32,7 +32,7 @@ function generateMonster(room) {
   let health = MONSTER_HEALTH;
   let damage = MONSTER_DAMAGE;
   let vel = [0, 0];
-  let maxVel = MONSTER_SPEED;
+  let maxVel = Math.random() * MONSTER_SPEED + 5;
   let acc = [0, 0];
   let angle = 0;
 
@@ -126,6 +126,31 @@ function move(obj) {
   obj.pos[1] += obj.vel[1] * TILESIZE * 0.01;
 }
 
+function generateGridTile() {
+  let tile = []
+  for (let row = 0; row < 4; row++) {
+    tile.push([])
+    for (let column = 0; column < 4; column++){
+      tile[row].push([])
+    }
+  }
+  return tile
+}
+
+tile = generateGridTile() 
+console.log(tile)
+
+function drawTile(tile) {
+  for (let row = 0; row < 4; row++) {
+    for (let column = 0; column < 4; column++) {
+      let randomColor = `rgb(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)})`
+      CTX.fillStyle = randomColor
+      CTX.fillRect(row*TILESIZE, column*TILESIZE, TILESIZE, TILESIZE)
+      CTX.fillStyle = 'rgb(0,0,0)'
+    }
+  }
+}
+
 document.addEventListener("keydown", (e) => {
   if (e.repeat) {
     return;
@@ -184,6 +209,8 @@ function animate() {
     monsters[i].angle = Math.atan2(deltaYMonster, deltaXMonster);
   }
 
+  drawTile(tile)
+
   // rotate canvas in order to draw player
   CTX.save();
   CTX.translate(PLAYER.pos[0], PLAYER.pos[1]);
@@ -210,8 +237,8 @@ function animate() {
 let monster = generateMonster([]);
 
 let monsters = [monster];
-// for (let i = 0; i < 1000; i++) {
-//   monsters.push(generateMonster([]));
-// }
+for (let i = 0; i < 10; i++) {
+  monsters.push(generateMonster([]));
+}
 
 animate();
