@@ -5,8 +5,17 @@ const CTX = CANVAS.getContext("2d");
 CANVAS.height = innerHeight * 0.8;
 CANVAS.width = CANVAS.height * 1.5;
 
+// loading images
+const TEST_TILE = new Image();
+const TEST_TILE_2 = new Image();
+TEST_TILE.src = "images/testtile.png";
+TEST_TILE_2.src = "images/testtile2.png";
+CTX.imageSmoothingEnabled = false;
+// disables antiailasing
+
 // declaring variables
 const TILESIZE = CANVAS.width * 0.055;
+const CHUNK_WIDTH = 4;
 let acceleration = 0.2;
 let mouseX = 0;
 let mouseY = 0;
@@ -19,14 +28,14 @@ const MONSTER_DAMAGE = 10;
 
 const PLAYER = {
   pos: [2 * TILESIZE, 2 * TILESIZE],
-  size: TILESIZE,
+  size: TILESIZE * 0.75,
   vel: [0, 0], // velocity unit - millitiles per frame
   maxVel: 10.5,
   acc: [0, 0],
 };
 
 function generateMonster(room) {
-  // monsterPos = room.tiles[Math.random() * room.tile.length]
+  // monsterPos = room.tiles[Math.random() * room.chunk.length]
   let pos = [MONSTER_X, MONSTER_Y];
   let size = TILESIZE * MONSTER_SIZE;
   let health = MONSTER_HEALTH;
@@ -126,27 +135,43 @@ function move(obj) {
   obj.pos[1] += obj.vel[1] * TILESIZE * 0.01;
 }
 
-function generateGridTile() {
-  let tile = []
-  for (let row = 0; row < 4; row++) {
-    tile.push([])
-    for (let column = 0; column < 4; column++){
-      tile[row].push([])
+function generateRoom() {
+  // places chunks, old code
+  let chunk = [];
+  for (let row = 0; row < CHUNK_WIDTH; row++) {
+    chunk.push([]); // generate empty rows
+    for (let column = 0; column < CHUNK_WIDTH; column++) {
+      chunk[row].push("w"); // generate one tile per column in current row
     }
   }
-  return tile
+  return chunk;
 }
 
-tile = generateGridTile() 
-console.log(tile)
+// let chunk = generateGridChunk();
+let chunk = [
+  ["w", "w", "w", "w"],
+  ["w", "s", "w", "s"],
+  ["w", "s", "s", "s"],
+  ["w", "s", "s", "s"],
+];
+console.log(chunk);
 
-function drawTile(tile) {
-  for (let row = 0; row < 4; row++) {
-    for (let column = 0; column < 4; column++) {
-      let randomColor = `rgb(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)})`
-      CTX.fillStyle = randomColor
-      CTX.fillRect(row*TILESIZE, column*TILESIZE, TILESIZE, TILESIZE)
-      CTX.fillStyle = 'rgb(0,0,0)'
+function drawTiles(chunk) {
+  for (let row = 0; row < CHUNK_WIDTH; row++) {
+    for (let column = 0; column < CHUNK_WIDTH; column++) {
+      let color;
+      if (chunk[row][column] === "w") {
+        image = TEST_TILE;
+      } else {
+        image = TEST_TILE_2;
+      }
+      CTX.drawImage(
+        image,
+        column * TILESIZE,
+        row * TILESIZE,
+        TILESIZE,
+        TILESIZE
+      );
     }
   }
 }
@@ -209,7 +234,7 @@ function animate() {
     monsters[i].angle = Math.atan2(deltaYMonster, deltaXMonster);
   }
 
-  drawTile(tile)
+  drawTiles(chunk);
 
   // rotate canvas in order to draw player
   CTX.save();

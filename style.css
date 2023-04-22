@@ -8,4 +8,5 @@
   aspect-ratio: 1.5;
   margin: auto;
   margin-top: 10vh;
+  /* image-rendering: pixelated; */
 }
