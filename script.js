@@ -177,7 +177,14 @@ let echunkvar1 = [
   ["w", "s", "s", "w"],
 ];
 
-let echunks = [echunk, echunkvar1]
+let echunkvar2 = [
+  ["w", "d", "s", "s"],
+  ["w", "s", "s", "s"],
+  ["w", "s", "s", "s"],
+  ["w", "s", "d", "d"],
+];
+
+let echunks = [echunk, echunkvar1, echunkvar2]
 
 let ctlchunk = [
   ["w", "w", "w", "w"],
@@ -193,7 +200,14 @@ let ctlchunkvar1 = [
   ["w", "s", "w", "s"],
 ];
 
-let ctlchunks = [ctlchunk, ctlchunkvar1]
+let ctlchunkvar2 = [
+  ["w", "w", "w", "w"],
+  ["w", "s", "s", "s"],
+  ["w", "s", "d", "s"],
+  ["w", "s", "w", "s"],
+];
+
+let ctlchunks = [ctlchunk, ctlchunkvar1, ctlchunkvar2]
 
 let midchunk = [
   ["s", "s", "s", "s"],
@@ -216,7 +230,14 @@ let midchunk_var2 = [
   ["s", "w", "s", "w"],
 ];
 
-let midchunks = [midchunk, midchunk_var1, midchunk_var2]
+let midchunk_var3 = [
+  ["w", "w", "s", "d"],
+  ["s", "s", "s", "s"],
+  ["s", "s", "s", "s"],
+  ["s", "d", "s", "w"],
+];
+
+let midchunks = [midchunk, midchunk_var1, midchunk_var2, midchunk_var3]
 
 function generateRoom(map, room_row, room_column) {
   // places chunks, old code
