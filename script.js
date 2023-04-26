@@ -18,8 +18,8 @@ CTX.imageSmoothingEnabled = false;
 // declaring variables
 const TILESIZE = CANVAS.width * 0.055;
 const CHUNK_WIDTH = 4;
-const ROOMHEIGHT = 3;
-const ROOMWIDTH = 4;
+const ROOMHEIGHT = 3
+const ROOMWIDTH = 4
 let acceleration = 0.2;
 let mouseX = 0;
 let mouseY = 0;
@@ -139,61 +139,45 @@ function move(obj) {
   obj.pos[1] += obj.vel[1] * TILESIZE * 0.01;
 }
 
-let lechunk = [
+function rotateChunk(chunk, number) {
+  let currentChunk = [];
+  for (let row = 0; row < CHUNK_WIDTH; row++) {
+    currentChunk.push(chunk[row])
+  }
+  for (let rotateNum = 0; rotateNum < number; rotateNum++) {
+    let newChunk = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+    for (let row = 0; row < CHUNK_WIDTH; row++) {
+      for (let column = 0; column < CHUNK_WIDTH; column++) {
+        newChunk[row][column] = currentChunk[column][row]
+        newChunk[column][row] = currentChunk[row][column]
+      }
+    }
+    for (let row = 0; row < CHUNK_WIDTH; row++) {
+      newChunk[row].reverse();
+    } 
+    currentChunk = [];
+    for (let row = 0; row < CHUNK_WIDTH; row++) {
+      currentChunk.push(newChunk[row])
+    }
+  }
+  return currentChunk
+}
+
+let echunk = [
   ["w", "s", "s", "s"],
   ["w", "s", "s", "s"],
   ["w", "s", "s", "s"],
   ["w", "s", "s", "s"],
 ];
 
-let lechunkdoor = [
+let echunkvar1 = [
   ["w", "s", "s", "s"],
-  ["d", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
+  ["w", "s", "w", "s"],
+  ["w", "s", "s", "w"],
+  ["w", "s", "s", "w"],
 ];
 
-let rechunk = [
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "w"],
-];
-
-let rechunkdoor = [
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "d"],
-  ["s", "s", "s", "w"],
-];
-
-let techunk = [
-  ["w", "w", "w", "w"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-];
-
-let techunkdoor = [
-  ["w", "w", "d", "w"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-];
-
-let bechunk = [
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["w", "w", "w", "w"],
-];
-
-let bechunkdoor = [
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["w", "w", "d", "w"],
-];
+let echunks = [echunk, echunkvar1]
 
 let ctlchunk = [
   ["w", "w", "w", "w"],
@@ -202,26 +186,14 @@ let ctlchunk = [
   ["w", "s", "s", "s"],
 ];
 
-let cblchunk = [
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
+let ctlchunkvar1 = [
   ["w", "w", "w", "w"],
+  ["w", "s", "s", "s"],
+  ["w", "s", "s", "w"],
+  ["w", "s", "w", "s"],
 ];
 
-let ctrchunk = [
-  ["w", "w", "w", "w"],
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "w"],
-];
-
-let cbrchunk = [
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "w"],
-  ["s", "s", "s", "w"],
-  ["w", "w", "w", "w"],
-];
+let ctlchunks = [ctlchunk, ctlchunkvar1]
 
 let midchunk = [
   ["s", "s", "s", "s"],
@@ -230,6 +202,22 @@ let midchunk = [
   ["s", "s", "s", "s"],
 ];
 
+let midchunk_var1 = [
+  ["w", "s", "s", "w"],
+  ["s", "w", "s", "s"],
+  ["s", "s", "s", "s"],
+  ["s", "w", "s", "s"],
+];
+
+let midchunk_var2 = [
+  ["w", "s", "s", "w"],
+  ["s", "s", "w", "s"],
+  ["s", "s", "s", "s"],
+  ["s", "w", "s", "w"],
+];
+
+let midchunks = [midchunk, midchunk_var1, midchunk_var2]
+
 function generateRoom(map, room_row, room_column) {
   // places chunks, old code
   let room = [];
@@ -237,32 +225,32 @@ function generateRoom(map, room_row, room_column) {
     room.push([]); // generate empty rows
     for (let column = 0; column < ROOMWIDTH; column++) {
       switch (true) {
-        case column == 0 && row == 0:
-          room[row].push(ctlchunk);
+        case (column == 0 && row == 0):
+          room[row].push(ctlchunks[Math.floor(Math.random() * ctlchunks.length)]);
           break;
-        case column == 0 && row == ROOMHEIGHT - 1:
-          room[row].push(cblchunk);
+        case (column == 0 && row == ROOMHEIGHT - 1):
+          room[row].push(rotateChunk(ctlchunks[Math.floor(Math.random() * ctlchunks.length)], 3));
           break;
-        case column == ROOMWIDTH - 1 && row == 0:
-          room[row].push(ctrchunk);
+        case (column == ROOMWIDTH - 1 && row == 0):
+          room[row].push(rotateChunk(ctlchunks[Math.floor(Math.random() * ctlchunks.length)], 1));
           break;
-        case column == ROOMWIDTH - 1 && row == ROOMHEIGHT - 1:
-          room[row].push(cbrchunk);
+        case (column == ROOMWIDTH - 1 && row == ROOMHEIGHT - 1):
+          room[row].push(rotateChunk(ctlchunks[Math.floor(Math.random() * ctlchunks.length)], 2));
           break;
-        case column == 0:
-          room[row].push(lechunk);
+        case (column == 0):
+          room[row].push(echunks[Math.floor(Math.random() * echunks.length)]);
           break;
-        case column == ROOMWIDTH - 1:
-          room[row].push(rechunk);
+        case (column == ROOMWIDTH - 1):
+          room[row].push(rotateChunk(echunks[Math.floor(Math.random() * echunks.length)], 2));
           break;
-        case row == 0:
-          room[row].push(techunk);
+        case (row == 0):
+          room[row].push(rotateChunk(echunks[Math.floor(Math.random() * echunks.length)], 1));
           break;
-        case row == ROOMHEIGHT - 1:
-          room[row].push(bechunk);
+        case (row == ROOMHEIGHT - 1):
+          room[row].push(rotateChunk(echunks[Math.floor(Math.random() * echunks.length)], 3));
           break;
         default:
-          room[row].push(midchunk);
+          room[row].push(midchunks[Math.floor(Math.random() * midchunks.length)]);
           break;
       }
     }
@@ -273,44 +261,57 @@ function generateRoom(map, room_row, room_column) {
   // }
   // // Math.floor(Math.random() * (ROOMWIDTH - 2)) + 1
   // if (room_row !== 0) {
-
   // }
 
-  return room;
+
+  let actualroom = []
+  for (let i = 0; i < ROOMHEIGHT * 4; i++) {
+    actualroom.push([])
+  }
+  for (let roomrow = 0; roomrow < ROOMHEIGHT; roomrow++) {
+    for (let roomcolumn = 0; roomcolumn < ROOMWIDTH; roomcolumn++) {
+      for (let chunkrow = 0; chunkrow < CHUNK_WIDTH; chunkrow++) {
+        for (let chunkcolumn = 0; chunkcolumn < CHUNK_WIDTH; chunkcolumn++) {
+          actualroom[roomrow * 4 + chunkrow].push(room[roomrow][roomcolumn][chunkrow][chunkcolumn])
+        }
+      }   
+    }
+  }
+
+  return actualroom;
 }
 
 function generateMap() {
-  let map = [];
+  let map = []
   for (let row = 0; row < 5; row++) {
-    map.push([]);
+    map.push([])
     for (let column = 0; column < 5; column++) {
-      map[row].push(generateRoom(map, row, column));
+      map[row].push(generateRoom(map, row, column))
     }
   }
-  return map;
+  return map
 }
 
-console.log(generateMap());
+let test_room = generateRoom()
 
-let test_room = generateRoom();
-console.log(test_room);
+console.log(generateMap())
 
 // let chunk = generateGridChunk();
 
-function drawTiles(chunk, chunkrow, chunkcolumn) {
-  for (let row = 0; row < CHUNK_WIDTH; row++) {
-    for (let column = 0; column < CHUNK_WIDTH; column++) {
-      if (chunk[row][column] === "w") {
+function drawTiles(room) {
+  for (let row = 0; row < ROOMHEIGHT*4; row++) {
+    for (let column = 0; column < ROOMWIDTH*4; column++) {
+      if (room[row][column] === "w") {
         image = TEST_TILE;
-      } else if (chunk[row][column] === "d") {
-        image = TEST_TILE_3;
-      } else {
+      } else if (room[row][column] === "d") {
+        image = TEST_TILE_3
+      }else {
         image = TEST_TILE_2;
       }
       CTX.drawImage(
         image,
-        column * TILESIZE + chunkcolumn * TILESIZE * 4,
-        row * TILESIZE + chunkrow * TILESIZE * 4,
+        column * TILESIZE,
+        row * TILESIZE,
         TILESIZE,
         TILESIZE
       );
@@ -375,13 +376,9 @@ function animate() {
     const deltaYMonster = monsters[i].pos[1] - PLAYER.pos[1];
     monsters[i].angle = Math.atan2(deltaYMonster, deltaXMonster);
   }
-
-  // draw room
-  for (let row = 0; row < ROOMHEIGHT; row++) {
-    for (let column = 0; column < ROOMWIDTH; column++) {
-      drawTiles(test_room[row][column], row, column);
-    }
-  }
+  
+  // draw room  
+  drawTiles(test_room)
 
   // rotate canvas in order to draw player
   CTX.save();
