@@ -271,7 +271,7 @@ function generateRoom(map, room_row, room_column) {
           room[row].push(rotateChunk(echunks[Math.floor(Math.random() * echunks.length)], 3));
           break;
         default:
-          room[row].push(midchunks[Math.floor(Math.random() * midchunks.length)]);
+          room[row].push(rotateChunk(midchunks[Math.floor(Math.random() * midchunks.length)], Math.floor(Math.random() * 4) + 1));
           break;
       }
     }
