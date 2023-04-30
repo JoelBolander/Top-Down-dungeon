@@ -6,17 +6,17 @@ CANVAS.height = innerHeight * 0.8;
 CANVAS.width = CANVAS.height * 1.5;
 
 // loading images
-const TEST_TILE = new Image();
+const DOOR = new Image();
 const TEST_TILE_2 = new Image();
 const TEST_TILE_3 = new Image();
-TEST_TILE.src = "images/tiles/testtile3.png";
+DOOR.src = "images/tiles/testtile3.png";
 TEST_TILE_2.src = "images/tiles/dirt.png";
-TEST_TILE_3.src = "images/tiles/testtile3.png";
+TEST_TILE_3.src = "images/tiles/smooth-tile-1.png";
 CTX.imageSmoothingEnabled = false;
 // disables antiailasing
 
 // declaring variables
-const TILESIZE = CANVAS.width * 0.0415;
+const TILESIZE = CANVAS.width / 24; // denominator is equal to number of tiles that fit in the canvas's width
 const CHUNK_WIDTH = 4;
 const ROOMHEIGHT = 4;
 const ROOMWIDTH = 6;
@@ -255,6 +255,17 @@ let midchunk_var3 = [
 
 let midchunks = [midchunk, midchunk_var1, midchunk_var2, midchunk_var3];
 
+function generateMap() {
+  let map = [];
+  for (let row = 0; row < 5; row++) {
+    map.push([]);
+    for (let column = 0; column < 5; column++) {
+      map[row].push(generateRoom(map, row, column));
+    }
+  }
+  return map;
+}
+
 function generateRoom(map, roomRow, roomColumn) {
   while (true) {
     let room = [];
@@ -475,28 +486,15 @@ function generateRoom(map, roomRow, roomColumn) {
   }
 }
 
-function generateMap() {
-  let map = [];
-  for (let row = 0; row < 5; row++) {
-    map.push([]);
-    for (let column = 0; column < 5; column++) {
-      // console.log(map);
-      map[row].push(generateRoom(map, row, column));
-    }
-  }
-  return map;
-}
-
 let map = generateMap();
-console.log(map);
 
 function drawTiles(room) {
   for (let row = 0; row < ROOMHEIGHT * 4; row++) {
     for (let column = 0; column < ROOMWIDTH * 4; column++) {
       if (room[row][column] === "w") {
-        image = TEST_TILE;
-      } else if (room[row][column] === "d") {
         image = TEST_TILE_3;
+      } else if (room[row][column] === "d") {
+        image = DOOR;
       } else {
         image = TEST_TILE_2;
       }
@@ -555,16 +553,16 @@ function findPath(room, startRow, startCol, endRow, endCol) {
   return explore(startRow, startCol);
 }
 
-let testingRoom = [
-  ["w", "w", "w", "w", "w", "w"],
-  ["w", "w", "w", "w", "w", "w"],
-  ["d", "s", "s", "w", "s", "w"],
-  ["w", "w", "s", "w", "w", "d"],
-  ["w", "w", "s", "w", "s", "w"],
-  ["w", "w", "s", "s", "s", "w"],
-];
+// let testingRoom = [
+//   ["w", "w", "w", "w", "w", "w"],
+//   ["w", "w", "w", "w", "w", "w"],
+//   ["d", "s", "s", "w", "s", "w"],
+//   ["w", "w", "s", "w", "w", "d"],
+//   ["w", "w", "s", "w", "s", "w"],
+//   ["w", "w", "s", "s", "s", "w"],
+// ];
 
-console.log(findPath(testingRoom, 2, 0, 3, 5));
+// console.log(findPath(testingRoom, 2, 0, 3, 5));
 
 document.addEventListener("keydown", (e) => {
   if (e.repeat) {
@@ -625,20 +623,34 @@ document.addEventListener("mousemove", (e) => {
   mouseY = e.clientY - CANVASRECT.top;
 });
 
-function collision(object) {
-  let intersection = [
-    Math.round(object.pos[0] / TILESIZE) + 0.5,
-    Math.round(object.pos[1] / TILESIZE) + 0.5,
-  ];
-  let tilePositions = [
-    [intersection[0] - 0.5, intersection[1] - 0.5],
-    [intersection[0] + 0.5, intersection[1] - 0.5],
-    [intersection[0] - 0.5, intersection[1] + 0.5],
-    [intersection[0] + 0.5, intersection[1] + 0.5],
-  ];
+function collision(object, room) {
+  const TILE_POSITIONS = [];
+  const OBJECT_POSITION = [object.pos[0] / TILESIZE, object.pos[1] / TILESIZE];
+  for (let row = 0; row < 3; row++) {
+    for (let column = 0; column < 3; column++) {
+      const TILE_X = Math.floor(object.pos[0] / TILESIZE - 1 + column);
+      const TILE_Y = Math.floor(object.pos[1] / TILESIZE - 1 + row);
+      if (
+        TILE_X >= 0 &&
+        TILE_X < ROOMWIDTH * CHUNK_WIDTH &&
+        TILE_Y >= 0 &&
+        TILE_Y < ROOMHEIGHT * CHUNK_WIDTH
+      )
+        TILE_POSITIONS.push([TILE_X, TILE_Y]);
+    }
+  }
+  for (let i = 0; i < TILE_POSITIONS.length; i++) {
+    const TILE = room[TILE_POSITIONS[i][1]][TILE_POSITIONS[i][0]];
+    if (TILE === "w") {
+      // console.log(TILE_POSITIONS[i]);
+      // console.log(OBJECT_POSITION);
+    }
+  }
 }
 
 function animate() {
+  const ROOM = map[currentRoomRow][currentRoomColumn];
+
   // clear canvas
   CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
 
@@ -658,10 +670,10 @@ function animate() {
   }
 
   // collision position offset
-  collision(PLAYER);
+  collision(PLAYER, ROOM);
 
   // draw room
-  drawTiles(map[currentRoomRow][currentRoomColumn]);
+  drawTiles(ROOM);
 
   // rotate canvas in order to draw player
   CTX.save();
