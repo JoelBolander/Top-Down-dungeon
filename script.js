@@ -9,9 +9,9 @@ CANVAS.width = CANVAS.height * 1.5;
 const TEST_TILE = new Image();
 const TEST_TILE_2 = new Image();
 const TEST_TILE_3 = new Image();
-TEST_TILE.src = "images/testtile.png";
-TEST_TILE_2.src = "images/testtile2.png";
-TEST_TILE_3.src = "images/testtile3.png";
+TEST_TILE.src = "images/tiles/testtile3.png";
+TEST_TILE_2.src = "images/tiles/dirt.png";
+TEST_TILE_3.src = "images/tiles/testtile3.png";
 CTX.imageSmoothingEnabled = false;
 // disables antiailasing
 
@@ -293,7 +293,7 @@ function generateMap() {
 console.log(generateMap());
 
 let test_room = generateRoom();
-console.log(test_room);
+// console.log(test_room);
 
 // let chunk = generateGridChunk();
 
@@ -357,6 +357,19 @@ document.addEventListener("mousemove", (e) => {
   mouseY = e.clientY - CANVASRECT.top;
 });
 
+function collision(object) {
+  let intersection = [
+    Math.round(object.pos[0] / TILESIZE) + 0.5,
+    Math.round(object.pos[1] / TILESIZE) + 0.5,
+  ];
+  let tilePositions = [
+    [intersection[0] - 0.5, intersection[1] - 0.5],
+    [intersection[0] + 0.5, intersection[1] - 0.5],
+    [intersection[0] - 0.5, intersection[1] + 0.5],
+    [intersection[0] + 0.5, intersection[1] + 0.5],
+  ];
+}
+
 function animate() {
   // clear canvas
   CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
@@ -376,12 +389,16 @@ function animate() {
     monsters[i].angle = Math.atan2(deltaYMonster, deltaXMonster);
   }
 
+  // collision position offset
+  collision(PLAYER);
+
   // draw room
-  for (let row = 0; row < ROOMHEIGHT; row++) {
-    for (let column = 0; column < ROOMWIDTH; column++) {
-      drawTiles(test_room[row][column], row, column);
-    }
-  }
+  // for (let row = 0; row < ROOMHEIGHT; row++) {
+  //   for (let column = 0; column < ROOMWIDTH; column++) {
+  //     drawTiles(test_room[row][column], row, column);
+  //   }
+  // }
+  drawTiles(lechunk, 1, 1);
 
   // rotate canvas in order to draw player
   CTX.save();
@@ -409,8 +426,8 @@ function animate() {
 let monster = generateMonster([]);
 
 let monsters = [monster];
-for (let i = 0; i < 10; i++) {
-  monsters.push(generateMonster([]));
-}
+// for (let i = 0; i < 10; i++) {
+//   monsters.push(generateMonster([]));
+// }
 
 animate();
