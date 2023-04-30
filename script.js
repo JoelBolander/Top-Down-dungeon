@@ -330,8 +330,7 @@ function generateRoom(map, roomRow, roomColumn) {
       }
     }
 
-    // work in progress, generate doors in each direction if it is not on the edge of the map
-
+    // generate doors
     if (roomRow !== 0) {
       let doorChunkCol;
       for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
@@ -405,155 +404,72 @@ function generateRoom(map, roomRow, roomColumn) {
       }
     }
 
-    if (BDoorCoords && TDoorCoords && LDoorCoords && RDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          LDoorCoords[0],
-          LDoorCoords[1],
-          TDoorCoords[0],
-          TDoorCoords[1]
-        ) &&
-        findPath(
-          actualroom,
-          TDoorCoords[0],
-          TDoorCoords[1],
-          RDoorCoords[0],
-          RDoorCoords[1]
-        ) &&
-        findPath(
-          actualroom,
-          RDoorCoords[0],
-          RDoorCoords[1],
-          BDoorCoords[0],
-          BDoorCoords[1]
-        )
-      ) {
-        return actualroom;
-      }
-    } else if (BDoorCoords && TDoorCoords && LDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          LDoorCoords[0],
-          LDoorCoords[1],
-          TDoorCoords[0],
-          TDoorCoords[1]
-        ) &&
-        findPath(
-          actualroom,
-          LDoorCoords[0],
-          LDoorCoords[1],
-          BDoorCoords[0],
-          BDoorCoords[1]
-        )
-      ) {
-        return actualroom;
-      }
-    } else if (BDoorCoords && TDoorCoords && RDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          RDoorCoords[0],
-          RDoorCoords[1],
-          TDoorCoords[0],
-          TDoorCoords[1]
-        ) &&
-        findPath(
-          actualroom,
-          RDoorCoords[0],
-          RDoorCoords[1],
-          BDoorCoords[0],
-          BDoorCoords[1]
-        )
-      ) {
-        return actualroom;
-      }
-    } else if (BDoorCoords && RDoorCoords && LDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          LDoorCoords[0],
-          LDoorCoords[1],
-          BDoorCoords[0],
-          BDoorCoords[1]
-        ) &&
-        findPath(
-          actualroom,
-          BDoorCoords[0],
-          BDoorCoords[1],
-          RDoorCoords[0],
-          RDoorCoords[1]
-        )
-      ) {
-        return actualroom;
-      }
-    } else if (TDoorCoords && RDoorCoords && LDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          TDoorCoords[0],
-          TDoorCoords[1],
-          RDoorCoords[0],
-          RDoorCoords[1]
-        ) &&
-        findPath(
-          actualroom,
-          TDoorCoords[0],
-          TDoorCoords[1],
-          LDoorCoords[0],
-          LDoorCoords[1]
-        )
-      ) {
-        return actualroom;
-      }
-    } else if (BDoorCoords && LDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          BDoorCoords[0],
-          BDoorCoords[1],
-          LDoorCoords[0],
-          LDoorCoords[1]
-        )
-      ) {
-        return actualroom;
-      }
-    } else if (BDoorCoords && RDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          BDoorCoords[0],
-          BDoorCoords[1],
-          RDoorCoords[0],
-          RDoorCoords[1]
-        )
-      ) {
-        return actualroom;
-      }
-    } else if (TDoorCoords && RDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          TDoorCoords[0],
-          TDoorCoords[1],
-          RDoorCoords[0],
-          RDoorCoords[1]
-        )
-      ) {
-        return actualroom;
-      }
-    } else if (TDoorCoords && LDoorCoords) {
-      if (
-        findPath(
-          actualroom,
-          TDoorCoords[0],
-          TDoorCoords[1],
-          LDoorCoords[0],
-          LDoorCoords[1]
-        )
-      ) {
-        return actualroom;
+    const ROOMCOMBINATIONS = [
+      [BDoorCoords, TDoorCoords, LDoorCoords, RDoorCoords],
+      [BDoorCoords, TDoorCoords, LDoorCoords],
+      [BDoorCoords, TDoorCoords, RDoorCoords],
+      [BDoorCoords, RDoorCoords, LDoorCoords],
+      [TDoorCoords, RDoorCoords, LDoorCoords],
+      [BDoorCoords, LDoorCoords],
+      [BDoorCoords, RDoorCoords],
+      [TDoorCoords, RDoorCoords],
+      [TDoorCoords, LDoorCoords],
+    ];
+
+    for (const roomCombination of ROOMCOMBINATIONS) {
+      const [door1, door2, door3, door4] = roomCombination;
+      if (door1 && door2 && door3 && door4) {
+        if (
+          findPath(actualroom, door3[0], door3[1], door2[0], door2[1]) &&
+          findPath(actualroom, door2[0], door2[1], door4[0], door4[1]) &&
+          findPath(actualroom, door4[0], door4[1], door1[0], door1[1])
+        ) {
+          return actualroom;
+        }
+      } else if (door1 && door2 && door3) {
+        if (
+          findPath(actualroom, door3[0], door3[1], door2[0], door2[1]) &&
+          findPath(actualroom, door3[0], door3[1], door1[0], door1[1])
+        ) {
+          return actualroom;
+        }
+      } else if (door1 && door2 && door4) {
+        if (
+          findPath(actualroom, door4[0], door4[1], door2[0], door2[1]) &&
+          findPath(actualroom, door4[0], door4[1], door1[0], door1[1])
+        ) {
+          return actualroom;
+        }
+      } else if (door1 && door4 && door3) {
+        if (
+          findPath(actualroom, door3[0], door3[1], door1[0], door1[1]) &&
+          findPath(actualroom, door1[0], door1[1], door4[0], door4[1])
+        ) {
+          return actualroom;
+        }
+      } else if (door2 && door4 && door3) {
+        if (
+          findPath(actualroom, door3[0], door3[1], door2[0], door2[1]) &&
+          findPath(actualroom, door2[0], door2[1], door4[0], door4[1])
+        ) {
+          return actualroom;
+        }
+      } else if (door1 && door3) {
+        if (findPath(actualroom, door1[0], door1[1], door3[0], door3[1])) {
+          return actualroom;
+        }
+      } else if (door1 && door4) {
+        if (findPath(actualroom, door1[0], door1[1], door4[0], door4[1])) {
+          return actualroom;
+        }
+      } else if (door2 && door4) {
+        if (findPath(actualroom, door2[0], door2[1], door4[0], door4[1])) {
+          return actualroom;
+        }
+      } else if (door2 && door3) {
+        if (findPath(actualroom, door2[0], door2[1], door3[0], door3[1])) {
+          return actualroom;
+        }
       }
     }
   }
