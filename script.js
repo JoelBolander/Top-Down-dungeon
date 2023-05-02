@@ -34,7 +34,7 @@ let currentRoomColumn = 1;
 
 const PLAYER = {
   pos: [2 * TILESIZE, 2 * TILESIZE],
-  size: TILESIZE * 0.75,
+  radius: (TILESIZE * 0.75) / 2,
   vel: [0, 0], // velocity unit - millitiles per frame
   maxVel: 10.5,
   acc: [0, 0],
@@ -641,9 +641,41 @@ function collision(object, room) {
   }
   for (let i = 0; i < TILE_POSITIONS.length; i++) {
     const TILE = room[TILE_POSITIONS[i][1]][TILE_POSITIONS[i][0]];
+    const TILE_X = TILE_POSITIONS[i][0] * TILESIZE;
+    const TILE_Y = TILE_POSITIONS[i][1] * TILESIZE;
     if (TILE === "w") {
-      // console.log(TILE_POSITIONS[i]);
-      // console.log(OBJECT_POSITION);
+      if (
+        TILE_X + TILESIZE < object.pos[0] &&
+        object.pos[0] < TILE_X + TILESIZE + object.radius &&
+        TILE_Y < object.pos[1] &&
+        object.pos[1] < TILE_Y + TILESIZE
+      ) {
+        object.pos[0] = TILE_X + TILESIZE + object.radius;
+      }
+      if (
+        TILE_X - object.radius < object.pos[0] &&
+        object.pos[0] < TILE_X &&
+        TILE_Y < object.pos[1] &&
+        object.pos[1] < TILE_Y + TILESIZE
+      ) {
+        object.pos[0] = TILE_X - object.radius;
+      }
+      if (
+        TILE_Y + TILESIZE < object.pos[1] &&
+        object.pos[1] < TILE_Y + TILESIZE + object.radius &&
+        TILE_X < object.pos[0] &&
+        object.pos[0] < TILE_X + TILESIZE
+      ) {
+        object.pos[1] = TILE_Y + TILESIZE + object.radius;
+      }
+      if (
+        TILE_Y - object.radius < object.pos[1] &&
+        object.pos[1] < TILE_Y &&
+        TILE_X < object.pos[0] &&
+        object.pos[0] < TILE_X + TILESIZE
+      ) {
+        object.pos[1] = TILE_Y - object.radius;
+      }
     }
   }
 }
@@ -679,7 +711,12 @@ function animate() {
   CTX.save();
   CTX.translate(PLAYER.pos[0], PLAYER.pos[1]);
   CTX.rotate(angle);
-  CTX.fillRect(-PLAYER.size / 2, -PLAYER.size / 2, PLAYER.size, PLAYER.size);
+  CTX.fillRect(
+    -PLAYER.radius,
+    -PLAYER.radius,
+    PLAYER.radius * 2,
+    PLAYER.radius * 2
+  );
   CTX.restore();
 
   for (let i = 0; i < monsters.length; i++) {
