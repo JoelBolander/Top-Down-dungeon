@@ -23,7 +23,7 @@ const ROOMWIDTH = 6;
 let acceleration = 0.2;
 let mouseX = 0;
 let mouseY = 0;
-const MONSTER_SIZE = 0.75;
+const MONSTER_SIZE = 0.5;
 const MONSTER_SPEED = 2.5;
 const MONSTER_X = 0;
 const MONSTER_Y = 2 * TILESIZE;
@@ -33,33 +33,34 @@ let currentRoomRow = 2;
 let currentRoomColumn = 1;
 
 const PLAYER = {
-  pos: [2 * TILESIZE, 2 * TILESIZE],
-  radius: (TILESIZE * 0.75) / 2,
+  pos: [1.5 * TILESIZE, 1.5 * TILESIZE],
+  radius: (TILESIZE * 0.6) / 2,
   vel: [0, 0], // velocity unit - millitiles per frame
   maxVel: 10.5,
   acc: [0, 0],
+  rotation: 0,
 };
 
 function generateMonster() {
   // monsterPos = room.tiles[Math.random() * room.chunk.length]
   let pos = [MONSTER_X, MONSTER_Y];
-  let size = TILESIZE * MONSTER_SIZE;
+  let radius = (TILESIZE * MONSTER_SIZE) / 2;
   let health = MONSTER_HEALTH;
   let damage = MONSTER_DAMAGE;
   let vel = [0, 0];
   let maxVel = Math.random() * MONSTER_SPEED + 5;
   let acc = [0, 0];
-  let angle = 0;
+  let rotation = 0;
 
   let monster = {
     pos,
-    size,
+    radius,
     health,
     damage,
     vel,
     maxVel,
     acc,
-    angle,
+    rotation,
   };
   return monster;
 }
@@ -591,6 +592,14 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+function topSecret() {
+  if (timer > 700) {
+    CTX.translate(CANVAS.width / 2, CANVAS.height / 2);
+    CTX.rotate(0.04);
+    CTX.translate(-CANVAS.width / 2, -CANVAS.height / 2);
+  }
+}
+
 document.addEventListener("keyup", (e) => {
   if (e.key === "w") {
     PLAYER.up = false;
@@ -633,6 +642,7 @@ function collision(object, room) {
     const TILE_X = TILE_POSITIONS[i][0] * TILESIZE;
     const TILE_Y = TILE_POSITIONS[i][1] * TILESIZE;
     if (TILE === "w") {
+      // doing collisions for sides
       if (
         TILE_X + TILESIZE < object.pos[0] &&
         object.pos[0] < TILE_X + TILESIZE + object.radius &&
@@ -665,70 +675,148 @@ function collision(object, room) {
       ) {
         object.pos[1] = TILE_Y - object.radius;
       }
+      // doing collision for corners
+      if (
+        TILE_X + TILESIZE < object.pos[0] &&
+        object.pos[0] < TILE_X + TILESIZE + object.radius &&
+        TILE_Y + TILESIZE < object.pos[1] &&
+        object.pos[1] < TILE_Y + TILESIZE + object.radius
+      ) {
+        if (
+          Math.sqrt(
+            (TILE_X + TILESIZE - object.pos[0]) ** 2 +
+              (TILE_Y + TILESIZE - object.pos[1]) ** 2
+          ) < object.radius
+        ) {
+          let angle = Math.atan2(
+            TILE_Y + TILESIZE - object.pos[1],
+            TILE_X + TILESIZE - object.pos[0]
+          );
+          object.pos[0] = TILE_X + TILESIZE - object.radius * Math.cos(angle);
+          object.pos[1] = TILE_Y + TILESIZE - object.radius * Math.sin(angle);
+        }
+      }
+      if (
+        TILE_X > object.pos[0] &&
+        object.pos[0] > TILE_X - object.radius &&
+        TILE_Y + TILESIZE < object.pos[1] &&
+        object.pos[1] < TILE_Y + TILESIZE + object.radius
+      ) {
+        if (
+          Math.sqrt(
+            (TILE_X - object.pos[0]) ** 2 +
+              (TILE_Y + TILESIZE - object.pos[1]) ** 2
+          ) < object.radius
+        ) {
+          let angle = Math.atan2(
+            TILE_Y + TILESIZE - object.pos[1],
+            TILE_X - object.pos[0]
+          );
+          object.pos[0] = TILE_X - object.radius * Math.cos(angle);
+          object.pos[1] = TILE_Y + TILESIZE - object.radius * Math.sin(angle);
+        }
+      }
+      if (
+        TILE_X + TILESIZE < object.pos[0] &&
+        object.pos[0] < TILE_X + TILESIZE + object.radius &&
+        TILE_Y > object.pos[1] &&
+        object.pos[1] > TILE_Y - object.radius
+      ) {
+        if (
+          Math.sqrt(
+            (TILE_X + TILESIZE - object.pos[0]) ** 2 +
+              (TILE_Y - object.pos[1]) ** 2
+          ) < object.radius
+        ) {
+          let angle = Math.atan2(
+            TILE_Y - object.pos[1],
+            TILE_X + TILESIZE - object.pos[0]
+          );
+          object.pos[0] = TILE_X + TILESIZE - object.radius * Math.cos(angle);
+          object.pos[1] = TILE_Y - object.radius * Math.sin(angle);
+        }
+      }
+      if (
+        TILE_X > object.pos[0] &&
+        object.pos[0] > TILE_X - object.radius &&
+        TILE_Y > object.pos[1] &&
+        object.pos[1] > TILE_Y - object.radius
+      ) {
+        if (
+          Math.sqrt(
+            (TILE_X - object.pos[0]) ** 2 + (TILE_Y - object.pos[1]) ** 2
+          ) < object.radius
+        ) {
+          let angle = Math.atan2(
+            TILE_Y - object.pos[1],
+            TILE_X - object.pos[0]
+          );
+          object.pos[0] = TILE_X - object.radius * Math.cos(angle);
+          object.pos[1] = TILE_Y - object.radius * Math.sin(angle);
+        }
+      }
     }
   }
 }
 
+function draw(object, color) {
+  CTX.save();
+  CTX.translate(object.pos[0], object.pos[1]);
+  CTX.rotate(object.rotation); // rotate canvas in order to draw player
+  CTX.fillStyle = color;
+  CTX.fillRect(
+    -object.radius,
+    -object.radius,
+    object.radius * 2,
+    object.radius * 2
+  );
+  CTX.restore(); // restore original canvas rotation
+}
+
+// WARNING - SHOULD BE SET TO FALSE UNDER ALL CIRCUMSTANCES
+let secret = false; // DO NOT TOUCH
+// WARNING - SHOULD BE SET TO FALSE UNDER ALL CIRCUMSTANCES
+
+let timer = 0;
+
 function animate() {
   const ROOM = map[currentRoomRow][currentRoomColumn];
+  topSecret();
+  if (secret) {
+    timer++;
+  }
 
   // clear canvas
   CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
 
-  // calculate player
-  move(PLAYER);
-  // angle
-  const DELTA_X = PLAYER.pos[0] - mouseX;
-  const DELTA_Y = PLAYER.pos[1] - mouseY;
-  let angle = Math.atan2(DELTA_Y, DELTA_X) - Math.PI / 2;
-
-  // calculate monster
-  for (let i = 0; i < monsters.length; i++) {
-    move(monsters[i]);
-    const deltaXMonster = monsters[i].pos[0] - PLAYER.pos[0];
-    const deltaYMonster = monsters[i].pos[1] - PLAYER.pos[1];
-    monsters[i].angle = Math.atan2(deltaYMonster, deltaXMonster);
-  }
-
-  // collision position offset
-  collision(PLAYER, ROOM);
-
   // draw room
   drawTiles(ROOM);
 
-  // rotate canvas in order to draw player
-  CTX.save();
-  CTX.translate(PLAYER.pos[0], PLAYER.pos[1]);
-  CTX.rotate(angle);
-  CTX.fillRect(
-    -PLAYER.radius,
-    -PLAYER.radius,
-    PLAYER.radius * 2,
-    PLAYER.radius * 2
-  );
-  CTX.restore();
+  // update player
+  PLAYER.rotation =
+    Math.atan2(PLAYER.pos[1] - mouseY, PLAYER.pos[0] - mouseX) - Math.PI / 2;
+  move(PLAYER);
+  collision(PLAYER, ROOM);
+  draw(PLAYER, "purple");
 
-  for (let i = 0; i < monsters.length; i++) {
-    CTX.save();
-    CTX.translate(monsters[i].pos[0], monsters[i].pos[1]);
-    CTX.rotate(monsters[i].angle);
-    CTX.fillRect(
-      -monsters[i].size / 2,
-      -monsters[i].size / 2,
-      monsters[i].size,
-      monsters[i].size
+  // update monsters
+  monsters.forEach((monster) => {
+    monster.rotation = Math.atan2(
+      monster.pos[1] - PLAYER.pos[1],
+      monster.pos[0] - PLAYER.pos[0]
     );
-    CTX.restore();
-  }
+    move(monster);
+    collision(monster, ROOM);
+    draw(monster, "maroon");
+  });
 
+  // next frame
   requestAnimationFrame(animate);
 }
 
-let monster = generateMonster([]);
-
-let monsters = [monster];
-// for (let i = 0; i < 10; i++) {
-//   monsters.push(generateMonster([]));
-// }
+let monsters = [];
+for (let i = 0; i < 3; i++) {
+  monsters.push(generateMonster([]));
+}
 
 animate();
