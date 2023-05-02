@@ -36,7 +36,7 @@ const PLAYER = {
   pos: [1.5 * TILESIZE, 1.5 * TILESIZE],
   radius: (TILESIZE * 0.6) / 2,
   vel: [0, 0], // velocity unit - millitiles per frame
-  maxVel: 10.5,
+  maxVel: 6.5,
   acc: [0, 0],
   rotation: 0,
 };
@@ -544,6 +544,7 @@ function findPath(room, startRow, startCol, endRow, endCol) {
     ];
     for (const [dr, dc] of directions) {
       if (explore(row + dr, col + dc)) {
+        // stacks function until true or otherwise
         return true;
       }
     }
@@ -815,8 +816,8 @@ function animate() {
 }
 
 let monsters = [];
-for (let i = 0; i < 3; i++) {
-  monsters.push(generateMonster([]));
-}
+// for (let i = 0; i < 3; i++) {
+//   monsters.push(generateMonster([]));
+// }
 
 animate();
