@@ -1,8 +1,9 @@
 // canvas things
 window.focus;
+const RESOLUTION = 4;
 const CANVAS = document.getElementById("myCanvas");
 const CTX = CANVAS.getContext("2d");
-CANVAS.height = innerHeight * 0.8;
+CANVAS.height = innerHeight * 0.8 * RESOLUTION;
 CANVAS.width = CANVAS.height * 1.5;
 
 // loading images
@@ -503,8 +504,8 @@ function drawTiles(room) {
         image,
         column * TILESIZE,
         row * TILESIZE,
-        TILESIZE,
-        TILESIZE
+        TILESIZE * 1.01,
+        TILESIZE * 1.01
       );
     }
   }
@@ -618,8 +619,8 @@ document.addEventListener("keyup", (e) => {
 
 document.addEventListener("mousemove", (e) => {
   const CANVASRECT = CANVAS.getBoundingClientRect();
-  mouseX = e.clientX - CANVASRECT.left;
-  mouseY = e.clientY - CANVASRECT.top;
+  mouseX = (e.clientX - CANVASRECT.left) * RESOLUTION;
+  mouseY = (e.clientY - CANVASRECT.top) * RESOLUTION;
 });
 
 function collision(object, room) {
@@ -764,8 +765,15 @@ function draw(object, color) {
   CTX.save();
   CTX.translate(object.pos[0], object.pos[1]);
   CTX.rotate(object.rotation); // rotate canvas in order to draw player
-  CTX.fillStyle = color;
-  CTX.fillRect(
+  // CTX.fillStyle = color;
+  // CTX.fillRect(
+  //   -object.radius,
+  //   -object.radius,
+  //   object.radius * 2,
+  //   object.radius * 2
+  // );
+  CTX.drawImage(
+    DOOR,
     -object.radius,
     -object.radius,
     object.radius * 2,

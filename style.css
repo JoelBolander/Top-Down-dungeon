@@ -2,11 +2,15 @@
   margin: 0;
 }
 
+body {
+  background-color: black;
+}
+
 #myCanvas {
   display: block;
   border: 2px solid black;
-  aspect-ratio: 1.5;
   margin: auto;
   margin-top: 10vh;
+  height: 80vh;
   /* image-rendering: pixelated; */
 }
