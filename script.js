@@ -553,17 +553,6 @@ function findPath(room, startRow, startCol, endRow, endCol) {
   return explore(startRow, startCol);
 }
 
-// let testingRoom = [
-//   ["w", "w", "w", "w", "w", "w"],
-//   ["w", "w", "w", "w", "w", "w"],
-//   ["d", "s", "s", "w", "s", "w"],
-//   ["w", "w", "s", "w", "w", "d"],
-//   ["w", "w", "s", "w", "s", "w"],
-//   ["w", "w", "s", "s", "s", "w"],
-// ];
-
-// console.log(findPath(testingRoom, 2, 0, 3, 5));
-
 document.addEventListener("keydown", (e) => {
   if (e.repeat) {
     return;
