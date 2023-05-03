@@ -23,6 +23,7 @@ const MONSTER_HEALTH = 10;
 const MONSTER_DAMAGE = 10;
 let currentRoomRow = 2;
 let currentRoomColumn = 1;
+const FPS = 90;
 
 const DOOR = new Image();
 const TEST_TILE_2 = new Image();
