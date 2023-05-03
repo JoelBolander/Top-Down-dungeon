@@ -1,38 +1,3 @@
-// canvas things
-window.focus;
-const RESOLUTION = 4;
-const CANVAS = document.getElementById("myCanvas");
-const CTX = CANVAS.getContext("2d");
-CANVAS.height = innerHeight * 0.8 * RESOLUTION;
-CANVAS.width = CANVAS.height * 1.5;
-
-// loading images
-const DOOR = new Image();
-const TEST_TILE_2 = new Image();
-const TEST_TILE_3 = new Image();
-DOOR.src = "images/tiles/testtile3.png";
-TEST_TILE_2.src = "images/tiles/dirt.png";
-TEST_TILE_3.src = "images/tiles/smooth-tile-1.png";
-CTX.imageSmoothingEnabled = false;
-// disables antiailasing
-
-// declaring variables
-const TILESIZE = CANVAS.width / 24; // denominator is equal to number of tiles that fit in the canvas's width
-const CHUNK_WIDTH = 4;
-const ROOMHEIGHT = 4;
-const ROOMWIDTH = 6;
-let acceleration = 0.2;
-let mouseX = 0;
-let mouseY = 0;
-const MONSTER_SIZE = 0.5;
-const MONSTER_SPEED = 2.5;
-const MONSTER_X = 0;
-const MONSTER_Y = 2 * TILESIZE;
-const MONSTER_HEALTH = 10;
-const MONSTER_DAMAGE = 10;
-let currentRoomRow = 2;
-let currentRoomColumn = 1;
-
 const PLAYER = {
   pos: [1.5 * TILESIZE, 1.5 * TILESIZE],
   radius: (TILESIZE * 0.6) / 2,
@@ -40,6 +5,7 @@ const PLAYER = {
   maxVel: 6.5,
   acc: [0, 0],
   rotation: 0,
+  images: [DOOR],
 };
 
 function generateMonster() {
@@ -172,91 +138,6 @@ function rotateChunk(chunk, number) {
   return currentChunk;
 }
 
-let echunk = [
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-];
-
-let echunkvar1 = [
-  ["w", "s", "s", "s"],
-  ["w", "s", "w", "s"],
-  ["w", "s", "s", "w"],
-  ["w", "s", "s", "w"],
-];
-
-let echunkvar2 = [
-  ["w", "w", "s", "s"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "w", "w"],
-];
-
-let echunks = [echunk, echunkvar1, echunkvar2];
-
-let echunkd = [
-  ["w", "s", "s", "s"],
-  ["d", "s", "s", "s"],
-  ["d", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-];
-
-let echunkds = [echunkd];
-
-let ctlchunk = [
-  ["w", "w", "w", "w"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "s"],
-];
-
-let ctlchunkvar1 = [
-  ["w", "w", "w", "w"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "s", "w"],
-  ["w", "s", "w", "s"],
-];
-
-let ctlchunkvar2 = [
-  ["w", "w", "w", "w"],
-  ["w", "s", "s", "s"],
-  ["w", "s", "w", "s"],
-  ["w", "s", "w", "s"],
-];
-
-let ctlchunks = [ctlchunk, ctlchunkvar1, ctlchunkvar2];
-
-let midchunk = [
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-];
-
-let midchunk_var1 = [
-  ["w", "s", "s", "w"],
-  ["s", "w", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "w", "s", "s"],
-];
-
-let midchunk_var2 = [
-  ["w", "s", "s", "w"],
-  ["s", "s", "w", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "w", "s", "w"],
-];
-
-let midchunk_var3 = [
-  ["w", "w", "s", "w"],
-  ["s", "s", "s", "s"],
-  ["s", "s", "s", "s"],
-  ["s", "w", "s", "w"],
-];
-
-let midchunks = [midchunk, midchunk_var1, midchunk_var2, midchunk_var3];
-
 function generateMap() {
   let map = [];
   for (let row = 0; row < 5; row++) {
@@ -265,6 +146,24 @@ function generateMap() {
       map[row].push(generateRoom(map, row, column));
     }
   }
+
+  // assign positions to each tile
+  for (let i = 0; i < map.length; i++) {
+    // for every roomRow
+    for (let j = 0; j < map[i].length; j++) {
+      // for every room
+      for (let k = 0; k < map[i][j].length; k++) {
+        // for every row
+        for (let l = 0; l < map[i][j][k].length; l++) {
+          // for every tile
+          // console.log(map[i][j][k][l]);
+          console.log(l);
+          map[i][j][k][l].pos = [l * TILESIZE, k * TILESIZE];
+        }
+      }
+    }
+  }
+
   return map;
 }
 
@@ -275,58 +174,60 @@ function generateRoom(map, roomRow, roomColumn) {
       room.push([]); // generate empty rows
       for (let column = 0; column < ROOMWIDTH; column++) {
         switch (true) {
-          case column == 0 && row == 0:
+          case column === 0 && row === 0:
             room[row].push(
-              ctlchunks[Math.floor(Math.random() * ctlchunks.length)]
+              cornerChunks[Math.floor(Math.random() * cornerChunks.length)]
             );
             break;
-          case column == 0 && row == ROOMHEIGHT - 1:
+          case column === 0 && row === ROOMHEIGHT - 1:
             room[row].push(
               rotateChunk(
-                ctlchunks[Math.floor(Math.random() * ctlchunks.length)],
+                cornerChunks[Math.floor(Math.random() * cornerChunks.length)],
                 3
               )
             );
             break;
-          case column == ROOMWIDTH - 1 && row == 0:
+          case column === ROOMWIDTH - 1 && row === 0:
             room[row].push(
               rotateChunk(
-                ctlchunks[Math.floor(Math.random() * ctlchunks.length)],
+                cornerChunks[Math.floor(Math.random() * cornerChunks.length)],
                 1
               )
             );
             break;
-          case column == ROOMWIDTH - 1 && row == ROOMHEIGHT - 1:
+          case column === ROOMWIDTH - 1 && row === ROOMHEIGHT - 1:
             room[row].push(
               rotateChunk(
-                ctlchunks[Math.floor(Math.random() * ctlchunks.length)],
+                cornerChunks[Math.floor(Math.random() * cornerChunks.length)],
                 2
               )
             );
             break;
-          case column == 0:
-            room[row].push(echunks[Math.floor(Math.random() * echunks.length)]);
+          case column === 0:
+            room[row].push(
+              edgeChunks[Math.floor(Math.random() * edgeChunks.length)]
+            );
             break;
-          case column == ROOMWIDTH - 1:
+          case column === ROOMWIDTH - 1:
             room[row].push(
               rotateChunk(
-                echunks[Math.floor(Math.random() * echunks.length)],
+                edgeChunks[Math.floor(Math.random() * edgeChunks.length)],
                 2
               )
             );
             break;
-          case row == 0:
+          case row === 0:
             room[row].push(
               rotateChunk(
-                echunks[Math.floor(Math.random() * echunks.length)],
+                edgeChunks[Math.floor(Math.random() * edgeChunks.length)],
                 1
               )
             );
             break;
-          case row == ROOMHEIGHT - 1:
+          case row === ROOMHEIGHT - 1:
             room[row].push(
               rotateChunk(
-                echunks[Math.floor(Math.random() * echunks.length)],
+                edgeChunks[Math.floor(Math.random() * edgeChunks.length)],
                 3
               )
             );
@@ -334,7 +235,7 @@ function generateRoom(map, roomRow, roomColumn) {
           default:
             room[row].push(
               rotateChunk(
-                midchunks[Math.floor(Math.random() * midchunks.length)],
+                midChunks[Math.floor(Math.random() * midChunks.length)],
                 Math.floor(Math.random() * 4) + 1
               )
             );
@@ -342,43 +243,50 @@ function generateRoom(map, roomRow, roomColumn) {
         }
       }
     }
-
     // generate doors
     if (roomRow !== 0) {
       let doorChunkCol;
       for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
         if (
-          map[roomRow - 1][roomColumn][ROOMHEIGHT * 4 - 1][searchIndex] == "d"
+          map[roomRow - 1][roomColumn][ROOMHEIGHT * 4 - 1][searchIndex].name ==
+          "Door"
         ) {
           doorChunkCol = Math.floor(searchIndex / 4);
         }
       }
       room[0][doorChunkCol] = rotateChunk(
-        echunkds[Math.floor(Math.random() * echunkds.length)],
+        doorChunks[Math.floor(Math.random() * doorChunks.length)],
         1
       );
     }
     if (roomRow !== 4) {
       room[ROOMHEIGHT - 1][Math.floor(Math.random() * (ROOMWIDTH - 2)) + 1] =
-        rotateChunk(echunkds[Math.floor(Math.random() * echunkds.length)], 3);
+        rotateChunk(
+          doorChunks[Math.floor(Math.random() * doorChunks.length)],
+          3
+        );
     }
     if (roomColumn !== 0) {
       let doorChunkRow;
       for (let searchIndex = 0; searchIndex < ROOMHEIGHT * 4; searchIndex++) {
         if (
-          map[roomRow][roomColumn - 1][searchIndex][ROOMWIDTH * 4 - 1] == "d"
+          map[roomRow][roomColumn - 1][searchIndex][ROOMWIDTH * 4 - 1].name ===
+          "Door"
         ) {
           doorChunkRow = Math.floor(searchIndex / 4);
         }
       }
       room[doorChunkRow][0] = rotateChunk(
-        echunkds[Math.floor(Math.random() * echunkds.length)],
+        doorChunks[Math.floor(Math.random() * doorChunks.length)],
         0
       );
     }
     if (roomColumn !== 4) {
       room[Math.floor(Math.random() * (ROOMHEIGHT - 2)) + 1][ROOMWIDTH - 1] =
-        rotateChunk(echunkds[Math.floor(Math.random() * echunkds.length)], 2);
+        rotateChunk(
+          doorChunks[Math.floor(Math.random() * doorChunks.length)],
+          2
+        );
     }
 
     let actualroom = [];
@@ -401,18 +309,18 @@ function generateRoom(map, roomRow, roomColumn) {
     let RDoorCoords;
     let LDoorCoords;
     for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
-      if (actualroom[ROOMHEIGHT * 4 - 1][searchIndex] == "d") {
+      if (actualroom[ROOMHEIGHT * 4 - 1][searchIndex].name === "Door") {
         BDoorCoords = [ROOMHEIGHT * 4 - 1, searchIndex];
       }
-      if (actualroom[0][searchIndex] == "d") {
+      if (actualroom[0][searchIndex].name === "Door") {
         TDoorCoords = [0, searchIndex];
       }
     }
     for (let searchIndex = 0; searchIndex < ROOMHEIGHT * 4; searchIndex++) {
-      if (actualroom[searchIndex][ROOMWIDTH * 4 - 1] == "d") {
+      if (actualroom[searchIndex][ROOMWIDTH * 4 - 1].name === "Door") {
         RDoorCoords = [searchIndex, ROOMWIDTH * 4 - 1];
       }
-      if (actualroom[searchIndex][0] == "d") {
+      if (actualroom[searchIndex][0].name === "Door") {
         LDoorCoords = [searchIndex, 0];
       }
     }
@@ -490,26 +398,29 @@ function generateRoom(map, roomRow, roomColumn) {
 
 let map = generateMap();
 
-function drawTiles(room) {
-  for (let row = 0; row < ROOMHEIGHT * 4; row++) {
-    for (let column = 0; column < ROOMWIDTH * 4; column++) {
-      if (room[row][column] === "w") {
-        image = TEST_TILE_3;
-      } else if (room[row][column] === "d") {
-        image = DOOR;
-      } else {
-        image = TEST_TILE_2;
-      }
-      CTX.drawImage(
-        image,
-        column * TILESIZE,
-        row * TILESIZE,
-        TILESIZE * 1.01,
-        TILESIZE * 1.01
-      );
-    }
-  }
-}
+// function drawTiles(room) {
+//   for (let row = 0; row < ROOMHEIGHT * 4; row++) {
+//     for (let column = 0; column < ROOMWIDTH * 4; column++) {
+//       const IMAGE = [];
+//       if (room[row][column] === "w") {
+//         IMAGE.push(TEST_TILE_3);
+//       } else if (room[row][column] .name === "Door") {
+//         IMAGE.push(TEST_TILE_2, DOOR);
+//       } else {
+//         IMAGE.push(TEST_TILE_2);
+//       }
+//       IMAGE.forEach(function (image) {
+//         CTX.drawImage(
+//           image,
+//           column * TILESIZE,
+//           row * TILESIZE,
+//           TILESIZE * 1.01,
+//           TILESIZE * 1.01
+//         );
+//       });
+//     }
+//   }
+// }
 
 function findPath(room, startRow, startCol, endRow, endCol) {
   const ROWS = room.length;
@@ -522,18 +433,17 @@ function findPath(room, startRow, startCol, endRow, endCol) {
       return false;
     }
 
-    if (row == endRow && col == endCol) {
+    if (row === endRow && col === endCol) {
       return true;
     }
 
     if (
       visited[row][col] ||
-      (room[row][col] !== "s" && room[row][col] !== "d")
+      (room[row][col].name !== "Ground" && room[row][col].name !== "Door")
     ) {
       // already visited or not a floor tile
       return false;
     }
-
     visited[row][col] = true;
 
     // explore adjacent tiles
@@ -546,6 +456,7 @@ function findPath(room, startRow, startCol, endRow, endCol) {
     for (const [dr, dc] of directions) {
       if (explore(row + dr, col + dc)) {
         // stacks function until true or otherwise
+
         return true;
       }
     }
@@ -643,7 +554,7 @@ function collision(object, room) {
     const TILE = room[TILE_POSITIONS[i][1]][TILE_POSITIONS[i][0]];
     const TILE_X = TILE_POSITIONS[i][0] * TILESIZE;
     const TILE_Y = TILE_POSITIONS[i][1] * TILESIZE;
-    if (TILE === "w") {
+    if (TILE.name === "Wall") {
       // doing collisions for sides
       if (
         TILE_X + TILESIZE < object.pos[0] &&
@@ -772,13 +683,16 @@ function draw(object, color) {
   //   object.radius * 2,
   //   object.radius * 2
   // );
-  CTX.drawImage(
-    DOOR,
-    -object.radius,
-    -object.radius,
-    object.radius * 2,
-    object.radius * 2
-  );
+  object.images.forEach(function (image) {
+    CTX.drawImage(
+      image,
+      -object.radius,
+      -object.radius,
+      object.radius * 2,
+      object.radius * 2
+    );
+  });
+
   CTX.restore(); // restore original canvas rotation
 }
 
@@ -799,7 +713,11 @@ function animate() {
   CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
 
   // draw room
-  drawTiles(ROOM);
+  for (const ROW of ROOM) {
+    for (const TILE of ROW) {
+      draw(TILE);
+    }
+  }
 
   // update player
   PLAYER.rotation =
