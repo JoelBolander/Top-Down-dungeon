@@ -32,12 +32,13 @@ const MONSTER_HEALTH = 10;
 const MONSTER_DAMAGE = 10;
 let currentRoomRow = 2;
 let currentRoomColumn = 1;
+const FPS = 90;
 
 const PLAYER = {
   pos: [1.5 * TILESIZE, 1.5 * TILESIZE],
   radius: (TILESIZE * 0.6) / 2,
   vel: [0, 0], // velocity unit - millitiles per frame
-  maxVel: 6.5,
+  maxVel: 8.5,
   acc: [0, 0],
   rotation: 0,
 };
@@ -623,9 +624,31 @@ document.addEventListener("mousemove", (e) => {
   mouseY = (e.clientY - CANVASRECT.top) * RESOLUTION;
 });
 
+function checkDoor(player, room) {
+  const PLAYER_POSITION = [
+    Math.floor(player.pos[0] / TILESIZE),
+    Math.floor(player.pos[1] / TILESIZE),
+  ];
+  if (room[PLAYER_POSITION[1]][PLAYER_POSITION[0]] === "d") {
+    if (PLAYER_POSITION[1] === 0) {
+      currentRoomRow -= 1;
+      player.pos[1] = (ROOMHEIGHT * 4 - 2) * TILESIZE;
+    } else if (PLAYER_POSITION[1] === ROOMHEIGHT * 4 - 1) {
+      currentRoomRow += 1;
+      player.pos[1] = TILESIZE;
+    } else if (PLAYER_POSITION[0] === 0) {
+      currentRoomColumn -= 1;
+      player.pos[0] = (ROOMWIDTH * 4 - 2) * TILESIZE;
+    } else if (PLAYER_POSITION[0] === ROOMWIDTH * 4 - 1) {
+      currentRoomColumn += 1;
+      player.pos[0] = TILESIZE;
+    }
+  }
+}
+
 function collision(object, room) {
   const TILE_POSITIONS = [];
-  const OBJECT_POSITION = [object.pos[0] / TILESIZE, object.pos[1] / TILESIZE];
+
   for (let row = 0; row < 3; row++) {
     for (let column = 0; column < 3; column++) {
       const TILE_X = Math.floor(object.pos[0] / TILESIZE - 1 + column);
@@ -806,6 +829,7 @@ function animate() {
     Math.atan2(PLAYER.pos[1] - mouseY, PLAYER.pos[0] - mouseX) - Math.PI / 2;
   move(PLAYER);
   collision(PLAYER, ROOM);
+  checkDoor(PLAYER, ROOM);
   draw(PLAYER, "purple");
 
   // update monsters
@@ -820,7 +844,9 @@ function animate() {
   });
 
   // next frame
-  requestAnimationFrame(animate);
+  setTimeout(() => {
+    requestAnimationFrame(animate);
+  }, 1000 / FPS);
 }
 
 let monsters = [];
