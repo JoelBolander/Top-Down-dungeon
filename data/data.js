@@ -1,3 +1,5 @@
+debugger;
+
 // canvas things
 window.focus;
 const RESOLUTION = 4;
@@ -21,8 +23,8 @@ const MONSTER_X = 0;
 const MONSTER_Y = 2 * TILESIZE;
 const MONSTER_HEALTH = 10;
 const MONSTER_DAMAGE = 10;
-let currentRoomRow = 2;
-let currentRoomColumn = 1;
+let currentRoomRow = 0;
+let currentRoomColumn = 0;
 const FPS = 90;
 
 const DOOR = new Image();
@@ -120,52 +122,3 @@ let cornerChunks = [cornerChunk, cornerChunk2, cornerChunk3];
 let midChunks = [midChunk, midChunk2, midChunk3, midChunk4];
 
 let allChunks = [edgeChunks, doorChunks, cornerChunks, midChunks];
-
-for (let i = 0; i < allChunks.length; i++) {
-  // for every chunkgroup
-  for (let j = 0; j < allChunks[i].length; j++) {
-    // for every chunk
-    for (let k = 0; k < allChunks[i][j].length; k++) {
-      // for every row
-      for (let l = 0; l < allChunks[i][j][k].length; l++) {
-        // for every tile
-
-        let name = allChunks[i][j][k][l];
-
-        switch (name) {
-          case "w":
-            name = "Wall";
-            break;
-          case "d":
-            name = "Door";
-            break;
-          case "g":
-            name = "Ground";
-            break;
-          default:
-            name = "Placeholder";
-            break;
-        }
-
-        allChunks[i][j][k][l] = {
-          name,
-          images: [images[name]],
-          pos: [100, 200],
-          rotation: 0,
-          radius: TILESIZE / 2,
-        };
-      }
-    }
-  }
-}
-/*
-tiles get converted from letters to objects
-
-exampleTile = {
-    name: "Door",
-    images: [currentGround, door],
-    pos: [6,0],
-    rotation: Math.PI / 2,
-}
-
-*/

@@ -110,6 +110,7 @@ function move(obj) {
 }
 
 function rotateChunk(chunk, number) {
+  debugger;
   let currentChunk = [];
   for (let row = 0; row < CHUNK_WIDTH; row++) {
     currentChunk.push(chunk[row]);
@@ -146,23 +147,59 @@ function generateMap() {
       map[row].push(generateRoom(map, row, column));
     }
   }
-
-  // assign positions to each tile
+  debugger;
+  // assign positions to each tile relative to their room
   for (let i = 0; i < map.length; i++) {
     // for every roomRow
     for (let j = 0; j < map[i].length; j++) {
       // for every room
       for (let k = 0; k < map[i][j].length; k++) {
-        // for every row
+        // for every tileRow
         for (let l = 0; l < map[i][j][k].length; l++) {
+          // console.log(l);
           // for every tile
-          // console.log(map[i][j][k][l]);
-          console.log(l);
-          map[i][j][k][l].pos = [l * TILESIZE, k * TILESIZE];
+          // map[i][j][k][l].pos = [(l + 0.5) * TILESIZE, (k + 0.5) * TILESIZE];
+          let name = map[i][j][k][l];
+
+          switch (name) {
+            case "w":
+              name = "Wall";
+              break;
+            case "d":
+              name = "Door";
+              break;
+            case "g":
+              name = "Ground";
+              break;
+            default:
+              name = "Placeholder";
+              break;
+          }
+
+          map[i][j][k][l] = {
+            name,
+            images: [images[name]],
+            pos: [(l + 0.5) * TILESIZE, (k + 0.5) * TILESIZE],
+            rotation: 0,
+            radius: TILESIZE / 2,
+          };
         }
       }
     }
   }
+  debugger;
+  console.log(map[0][0][0]);
+  /*
+  tiles get converted from letters to objects
+  
+  exampleTile = {
+      name: "Door",
+      images: [currentGround, door],
+      pos: [6,0],
+      rotation: Math.PI / 2,
+  }
+  
+  */
 
   return map;
 }
@@ -176,13 +213,17 @@ function generateRoom(map, roomRow, roomColumn) {
         switch (true) {
           case column === 0 && row === 0:
             room[row].push(
-              cornerChunks[Math.floor(Math.random() * cornerChunks.length)]
+              structuredClone(
+                cornerChunks[Math.floor(Math.random() * cornerChunks.length)]
+              )
             );
             break;
           case column === 0 && row === ROOMHEIGHT - 1:
             room[row].push(
               rotateChunk(
-                cornerChunks[Math.floor(Math.random() * cornerChunks.length)],
+                structuredClone(
+                  cornerChunks[Math.floor(Math.random() * cornerChunks.length)]
+                ),
                 3
               )
             );
@@ -190,7 +231,10 @@ function generateRoom(map, roomRow, roomColumn) {
           case column === ROOMWIDTH - 1 && row === 0:
             room[row].push(
               rotateChunk(
-                cornerChunks[Math.floor(Math.random() * cornerChunks.length)],
+                structuredClone(
+                  cornerChunks[Math.floor(Math.random() * cornerChunks.length)]
+                ),
+
                 1
               )
             );
@@ -198,20 +242,24 @@ function generateRoom(map, roomRow, roomColumn) {
           case column === ROOMWIDTH - 1 && row === ROOMHEIGHT - 1:
             room[row].push(
               rotateChunk(
-                cornerChunks[Math.floor(Math.random() * cornerChunks.length)],
+                structuredClone(
+                  cornerChunks[Math.floor(Math.random() * cornerChunks.length)]
+                ),
                 2
               )
             );
             break;
           case column === 0:
-            room[row].push(
-              edgeChunks[Math.floor(Math.random() * edgeChunks.length)]
-            );
+            room[row].push([
+              ...edgeChunks[Math.floor(Math.random() * edgeChunks.length)],
+            ]);
             break;
           case column === ROOMWIDTH - 1:
             room[row].push(
               rotateChunk(
-                edgeChunks[Math.floor(Math.random() * edgeChunks.length)],
+                structuredClone(
+                  edgeChunks[Math.floor(Math.random() * edgeChunks.length)]
+                ),
                 2
               )
             );
@@ -219,7 +267,9 @@ function generateRoom(map, roomRow, roomColumn) {
           case row === 0:
             room[row].push(
               rotateChunk(
-                edgeChunks[Math.floor(Math.random() * edgeChunks.length)],
+                structuredClone(
+                  edgeChunks[Math.floor(Math.random() * edgeChunks.length)]
+                ),
                 1
               )
             );
@@ -227,7 +277,9 @@ function generateRoom(map, roomRow, roomColumn) {
           case row === ROOMHEIGHT - 1:
             room[row].push(
               rotateChunk(
-                edgeChunks[Math.floor(Math.random() * edgeChunks.length)],
+                structuredClone(
+                  edgeChunks[Math.floor(Math.random() * edgeChunks.length)]
+                ),
                 3
               )
             );
@@ -235,7 +287,9 @@ function generateRoom(map, roomRow, roomColumn) {
           default:
             room[row].push(
               rotateChunk(
-                midChunks[Math.floor(Math.random() * midChunks.length)],
+                structuredClone(
+                  midChunks[Math.floor(Math.random() * midChunks.length)]
+                ),
                 Math.floor(Math.random() * 4) + 1
               )
             );
@@ -248,21 +302,24 @@ function generateRoom(map, roomRow, roomColumn) {
       let doorChunkCol;
       for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
         if (
-          map[roomRow - 1][roomColumn][ROOMHEIGHT * 4 - 1][searchIndex].name ==
-          "Door"
+          map[roomRow - 1][roomColumn][ROOMHEIGHT * 4 - 1][searchIndex] == "d"
         ) {
           doorChunkCol = Math.floor(searchIndex / 4);
         }
       }
       room[0][doorChunkCol] = rotateChunk(
-        doorChunks[Math.floor(Math.random() * doorChunks.length)],
+        structuredClone(
+          doorChunks[Math.floor(Math.random() * doorChunks.length)]
+        ),
         1
       );
     }
     if (roomRow !== 4) {
       room[ROOMHEIGHT - 1][Math.floor(Math.random() * (ROOMWIDTH - 2)) + 1] =
         rotateChunk(
-          doorChunks[Math.floor(Math.random() * doorChunks.length)],
+          structuredClone(
+            doorChunks[Math.floor(Math.random() * doorChunks.length)]
+          ),
           3
         );
     }
@@ -270,21 +327,24 @@ function generateRoom(map, roomRow, roomColumn) {
       let doorChunkRow;
       for (let searchIndex = 0; searchIndex < ROOMHEIGHT * 4; searchIndex++) {
         if (
-          map[roomRow][roomColumn - 1][searchIndex][ROOMWIDTH * 4 - 1].name ===
-          "Door"
+          map[roomRow][roomColumn - 1][searchIndex][ROOMWIDTH * 4 - 1] === "d"
         ) {
           doorChunkRow = Math.floor(searchIndex / 4);
         }
       }
       room[doorChunkRow][0] = rotateChunk(
-        doorChunks[Math.floor(Math.random() * doorChunks.length)],
+        structuredClone(
+          doorChunks[Math.floor(Math.random() * doorChunks.length)]
+        ),
         0
       );
     }
     if (roomColumn !== 4) {
       room[Math.floor(Math.random() * (ROOMHEIGHT - 2)) + 1][ROOMWIDTH - 1] =
         rotateChunk(
-          doorChunks[Math.floor(Math.random() * doorChunks.length)],
+          structuredClone(
+            doorChunks[Math.floor(Math.random() * doorChunks.length)]
+          ),
           2
         );
     }
@@ -309,18 +369,18 @@ function generateRoom(map, roomRow, roomColumn) {
     let RDoorCoords;
     let LDoorCoords;
     for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
-      if (actualroom[ROOMHEIGHT * 4 - 1][searchIndex].name === "Door") {
+      if (actualroom[ROOMHEIGHT * 4 - 1][searchIndex] === "d") {
         BDoorCoords = [ROOMHEIGHT * 4 - 1, searchIndex];
       }
-      if (actualroom[0][searchIndex].name === "Door") {
+      if (actualroom[0][searchIndex] === "d") {
         TDoorCoords = [0, searchIndex];
       }
     }
     for (let searchIndex = 0; searchIndex < ROOMHEIGHT * 4; searchIndex++) {
-      if (actualroom[searchIndex][ROOMWIDTH * 4 - 1].name === "Door") {
+      if (actualroom[searchIndex][ROOMWIDTH * 4 - 1] === "d") {
         RDoorCoords = [searchIndex, ROOMWIDTH * 4 - 1];
       }
-      if (actualroom[searchIndex][0].name === "Door") {
+      if (actualroom[searchIndex][0] === "d") {
         LDoorCoords = [searchIndex, 0];
       }
     }
@@ -402,7 +462,7 @@ let map = generateMap();
 //   for (let row = 0; row < ROOMHEIGHT * 4; row++) {
 //     for (let column = 0; column < ROOMWIDTH * 4; column++) {
 //       const IMAGE = [];
-//       if (room[row][column] === "w") {
+//       if (room[row][column] === "Wall") {
 //         IMAGE.push(TEST_TILE_3);
 //       } else if (room[row][column] .name === "Door") {
 //         IMAGE.push(TEST_TILE_2, DOOR);
@@ -439,7 +499,7 @@ function findPath(room, startRow, startCol, endRow, endCol) {
 
     if (
       visited[row][col] ||
-      (room[row][col].name !== "Ground" && room[row][col].name !== "Door")
+      (room[row][col] !== "g" && room[row][col] !== "d")
     ) {
       // already visited or not a floor tile
       return false;
@@ -761,9 +821,9 @@ function animate() {
   });
 
   // next frame
-  setTimeout(() => {
-    requestAnimationFrame(animate);
-  }, 1000 / FPS);
+  // setTimeout(() => {
+  requestAnimationFrame(animate);
+  // }, 1000 / FPS);
 }
 
 let monsters = [];
