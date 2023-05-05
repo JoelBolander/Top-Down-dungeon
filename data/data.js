@@ -40,7 +40,11 @@ TEST_TILE_2.src = "images/tiles/dirt.png";
 TEST_TILE_3.src = "images/tiles/smooth-tile-1.png";
 monk.src = "images/Monk/monk.jpg";
 
-let images = { Door: DOOR, Wall: TEST_TILE_3, Ground: TEST_TILE_2 };
+let images = {
+  Door: [TEST_TILE_2, DOOR],
+  Wall: [TEST_TILE_3],
+  Ground: [TEST_TILE_2],
+};
 
 let edgeChunk1 = [
   ["w", "g", "g", "g"],
