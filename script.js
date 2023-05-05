@@ -110,7 +110,6 @@ function move(obj) {
 }
 
 function rotateChunk(chunk, number) {
-  debugger;
   let currentChunk = [];
   for (let row = 0; row < CHUNK_WIDTH; row++) {
     currentChunk.push(chunk[row]);
@@ -147,7 +146,6 @@ function generateMap() {
       map[row].push(generateRoom(map, row, column));
     }
   }
-  debugger;
   // assign positions to each tile relative to their room
   for (let i = 0; i < map.length; i++) {
     // for every roomRow
@@ -178,7 +176,7 @@ function generateMap() {
 
           map[i][j][k][l] = {
             name,
-            images: [images[name]],
+            images: images[name],
             pos: [(l + 0.5) * TILESIZE, (k + 0.5) * TILESIZE],
             rotation: 0,
             radius: TILESIZE / 2,
@@ -187,19 +185,6 @@ function generateMap() {
       }
     }
   }
-  debugger;
-  console.log(map[0][0][0]);
-  /*
-  tiles get converted from letters to objects
-  
-  exampleTile = {
-      name: "Door",
-      images: [currentGround, door],
-      pos: [6,0],
-      rotation: Math.PI / 2,
-  }
-  
-  */
 
   return map;
 }
@@ -457,30 +442,6 @@ function generateRoom(map, roomRow, roomColumn) {
 }
 
 let map = generateMap();
-
-// function drawTiles(room) {
-//   for (let row = 0; row < ROOMHEIGHT * 4; row++) {
-//     for (let column = 0; column < ROOMWIDTH * 4; column++) {
-//       const IMAGE = [];
-//       if (room[row][column] === "Wall") {
-//         IMAGE.push(TEST_TILE_3);
-//       } else if (room[row][column] .name === "Door") {
-//         IMAGE.push(TEST_TILE_2, DOOR);
-//       } else {
-//         IMAGE.push(TEST_TILE_2);
-//       }
-//       IMAGE.forEach(function (image) {
-//         CTX.drawImage(
-//           image,
-//           column * TILESIZE,
-//           row * TILESIZE,
-//           TILESIZE * 1.01,
-//           TILESIZE * 1.01
-//         );
-//       });
-//     }
-//   }
-// }
 
 function findPath(room, startRow, startCol, endRow, endCol) {
   const ROWS = room.length;
@@ -754,7 +715,7 @@ function collision(object, room) {
   }
 }
 
-function draw(object, color) {
+function draw(object) {
   CTX.save();
   CTX.translate(object.pos[0], object.pos[1]);
   CTX.rotate(object.rotation); // rotate canvas in order to draw player
@@ -770,8 +731,8 @@ function draw(object, color) {
       image,
       -object.radius,
       -object.radius,
-      object.radius * 2,
-      object.radius * 2
+      object.radius * 2 + 0.7 / RESOLUTION + RESOLUTION * 0.1,
+      object.radius * 2 + 0.7 / RESOLUTION + RESOLUTION * 0.1
     );
   });
 
