@@ -1,3 +1,5 @@
+// debugger;
+
 const PLAYER = {
   pos: [1.5 * TILESIZE, 1.5 * TILESIZE],
   radius: (TILESIZE * 0.6) / 2,
@@ -18,6 +20,7 @@ function generateMonster() {
   let maxVel = Math.random() * MONSTER_SPEED + 5;
   let acc = [0, 0];
   let rotation = 0;
+  let images = [monk];
 
   let monster = {
     pos,
@@ -28,6 +31,7 @@ function generateMonster() {
     maxVel,
     acc,
     rotation,
+    images,
   };
   return monster;
 }
@@ -110,7 +114,6 @@ function move(obj) {
 }
 
 function rotateChunk(chunk, number) {
-  debugger;
   let currentChunk = [];
   for (let row = 0; row < CHUNK_WIDTH; row++) {
     currentChunk.push(chunk[row]);
@@ -141,13 +144,12 @@ function rotateChunk(chunk, number) {
 
 function generateMap() {
   let map = [];
-  for (let row = 0; row < 5; row++) {
+  for (let row = 0; row < MAPSIZE; row++) {
     map.push([]);
-    for (let column = 0; column < 5; column++) {
+    for (let column = 0; column < MAPSIZE; column++) {
       map[row].push(generateRoom(map, row, column));
     }
   }
-  debugger;
   // assign positions to each tile relative to their room
   for (let i = 0; i < map.length; i++) {
     // for every roomRow
@@ -187,7 +189,6 @@ function generateMap() {
       }
     }
   }
-  debugger;
   console.log(map[0][0][0]);
   /*
   tiles get converted from letters to objects
@@ -314,7 +315,7 @@ function generateRoom(map, roomRow, roomColumn) {
         1
       );
     }
-    if (roomRow !== 4) {
+    if (roomRow !== MAPSIZE - 1) {
       room[ROOMHEIGHT - 1][Math.floor(Math.random() * (ROOMWIDTH - 2)) + 1] =
         rotateChunk(
           structuredClone(
@@ -339,7 +340,7 @@ function generateRoom(map, roomRow, roomColumn) {
         0
       );
     }
-    if (roomColumn !== 4) {
+    if (roomColumn !== MAPSIZE - 1) {
       room[Math.floor(Math.random() * (ROOMHEIGHT - 2)) + 1][ROOMWIDTH - 1] =
         rotateChunk(
           structuredClone(
@@ -492,11 +493,9 @@ function findPath(room, startRow, startCol, endRow, endCol) {
       // out of bounds
       return false;
     }
-
     if (row === endRow && col === endCol) {
       return true;
     }
-
     if (
       visited[row][col] ||
       (room[row][col] !== "g" && room[row][col] !== "d")
@@ -505,7 +504,6 @@ function findPath(room, startRow, startCol, endRow, endCol) {
       return false;
     }
     visited[row][col] = true;
-
     // explore adjacent tiles
     const directions = [
       [0, -1],
@@ -516,14 +514,11 @@ function findPath(room, startRow, startCol, endRow, endCol) {
     for (const [dr, dc] of directions) {
       if (explore(row + dr, col + dc)) {
         // stacks function until true or otherwise
-
         return true;
       }
     }
-
     return false;
   }
-
   return explore(startRow, startCol);
 }
 
@@ -554,12 +549,12 @@ document.addEventListener("keydown", (e) => {
     }
   }
   if (e.key === "k") {
-    if (currentRoomRow !== 4) {
+    if (currentRoomRow !== MAPSIZE - 1) {
       currentRoomRow += 1;
     }
   }
   if (e.key === "l") {
-    if (currentRoomColumn !== 4) {
+    if (currentRoomColumn !== MAPSIZE - 1) {
       currentRoomColumn += 1;
     }
   }
@@ -594,6 +589,8 @@ document.addEventListener("mousemove", (e) => {
   mouseY = (e.clientY - CANVASRECT.top) * RESOLUTION;
 });
 
+document.addEventListener("mousedown", (event) => {});
+
 function checkDoor(player, room) {
   const PLAYER_POSITION = [
     Math.floor(player.pos[0] / TILESIZE),
@@ -602,13 +599,13 @@ function checkDoor(player, room) {
   if (room[PLAYER_POSITION[1]][PLAYER_POSITION[0]].name === "Door") {
     if (PLAYER_POSITION[1] === 0) {
       currentRoomRow -= 1;
-      player.pos[1] = (ROOMHEIGHT * 4 - 2) * TILESIZE;
+      player.pos[1] = (ROOMHEIGHT * 4 - 1) * TILESIZE;
     } else if (PLAYER_POSITION[1] === ROOMHEIGHT * 4 - 1) {
       currentRoomRow += 1;
       player.pos[1] = TILESIZE;
     } else if (PLAYER_POSITION[0] === 0) {
       currentRoomColumn -= 1;
-      player.pos[0] = (ROOMWIDTH * 4 - 2) * TILESIZE;
+      player.pos[0] = (ROOMWIDTH * 4 - 1) * TILESIZE;
     } else if (PLAYER_POSITION[0] === ROOMWIDTH * 4 - 1) {
       currentRoomColumn += 1;
       player.pos[0] = TILESIZE;
@@ -791,6 +788,14 @@ function animate() {
     timer++;
   }
 
+  if (cooldownFrame >= COOLDOWN) {
+    cooldownFrame = 0;
+  }
+
+  if (cooldownFrame > 0) {
+    cooldownFrame++;
+  }
+
   // clear canvas
   CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
 
@@ -827,8 +832,8 @@ function animate() {
 }
 
 let monsters = [];
-// for (let i = 0; i < 3; i++) {
-//   monsters.push(generateMonster([]));
-// }
+for (let i = 0; i < 3; i++) {
+  monsters.push(generateMonster([]));
+}
 
 animate();
