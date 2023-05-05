@@ -599,7 +599,7 @@ function checkDoor(player, room) {
     Math.floor(player.pos[0] / TILESIZE),
     Math.floor(player.pos[1] / TILESIZE),
   ];
-  if (room[PLAYER_POSITION[1]][PLAYER_POSITION[0]] === "d") {
+  if (room[PLAYER_POSITION[1]][PLAYER_POSITION[0]].name === "Door") {
     if (PLAYER_POSITION[1] === 0) {
       currentRoomRow -= 1;
       player.pos[1] = (ROOMHEIGHT * 4 - 2) * TILESIZE;
