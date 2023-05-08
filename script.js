@@ -2,12 +2,12 @@
 
 const PLAYER = {
   pos: [1.5 * TILESIZE, 1.5 * TILESIZE],
-  radius: (TILESIZE * 0.6) / 2,
+  radius: (TILESIZE * MONSTER_SIZE) / 2,
   vel: [0, 0], // velocity unit - millitiles per frame
   maxVel: 8.5,
   acc: [0, 0],
   rotation: 0,
-  images: [DOOR],
+  images: [TEST_TILE_3],
 };
 
 function generateMonster() {
@@ -17,10 +17,13 @@ function generateMonster() {
   let health = MONSTER_HEALTH;
   let damage = MONSTER_DAMAGE;
   let vel = [0, 0];
-  let maxVel = Math.random() * MONSTER_SPEED + 5;
+  let maxVel = Math.random() * MONSTER_SPEED + 1;
   let acc = [0, 0];
   let rotation = 0;
   let images = [monk];
+  let distance = 0;
+  let angle = 0;
+  let hp = Math.random() * MONSTER_HEALTH + 2;
 
   let monster = {
     pos,
@@ -32,6 +35,9 @@ function generateMonster() {
     acc,
     rotation,
     images,
+    distance,
+    angle,
+    hp,
   };
   return monster;
 }
@@ -553,7 +559,45 @@ document.addEventListener("mousemove", (e) => {
   mouseY = (e.clientY - CANVASRECT.top) * RESOLUTION;
 });
 
-document.addEventListener("mousedown", (event) => {});
+document.addEventListener("mousedown", (event) => {
+  let monsterTarget;
+  let mouseAngle = Math.atan2(PLAYER.pos[0] - mouseX, PLAYER.pos[1] - mouseY);
+  monsters.forEach((monster) => {
+    let combinedAngle;
+
+    monster.angle = Math.atan2(
+      PLAYER.pos[0] - monster.pos[0],
+      PLAYER.pos[1] - monster.pos[1]
+    );
+    monster.distance = Math.sqrt(
+      (PLAYER.pos[0] - monster.pos[0]) ** 2 +
+        (PLAYER.pos[1] - monster.pos[1]) ** 2
+    );
+
+    combinedAngle = Math.abs(monster.angle - mouseAngle);
+
+    if (combinedAngle > Math.PI) {
+      combinedAngle = Math.PI * 2 - combinedAngle;
+    }
+
+    if (
+      monster.distance < RANGE &&
+      combinedAngle - monster.distance / TILESIZE < 1
+    ) {
+      monsterTarget = monster;
+      console.log("DINMAMA");
+    }
+  });
+  if (monsterTarget) {
+    monsterTarget.hp -= 1;
+
+    console.log(monsterTarget);
+
+    if (monsterTarget.hp <= 0) {
+      monsters.pop(monsterTarget);
+    }
+  }
+});
 
 function checkDoor(player, room) {
   const PLAYER_POSITION = [
@@ -796,7 +840,7 @@ function animate() {
 }
 
 let monsters = [];
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 4; i++) {
   monsters.push(generateMonster([]));
 }
 
