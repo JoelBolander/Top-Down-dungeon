@@ -19,19 +19,20 @@ let acceleration = 0.2;
 let mouseX = 0;
 let mouseY = 0;
 const MONSTER_SIZE = 0.8;
-const MONSTER_SPEED = 2.5 / 30000000;
-const MONSTER_X = 0;
+const MONSTER_SPEED = 5;
+const MONSTER_X = 2 * TILESIZE;
 const MONSTER_Y = 2 * TILESIZE;
 const MONSTER_HEALTH = 3;
 const MONSTER_DAMAGE = 10;
 const MONSTER_AMOUNT = 3;
 const HIT_RANGE = 0.8;
-const COOLDOWN = 90;
+const COOLDOWN = 30;
 let cooldownFrame = 0;
 let currentRoomRow = 0;
 let currentRoomColumn = 0;
-const FPS = 90;
-const RANGE = 1.8 * TILESIZE;
+const FPS = 60;
+const PLAYER_RANGE = 1.8 * TILESIZE;
+const MONSTER_RANGE = 1 * TILESIZE;
 
 let monsters = [];
 
