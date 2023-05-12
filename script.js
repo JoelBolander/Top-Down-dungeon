@@ -4,7 +4,7 @@ const PLAYER = {
   pos: [1.5 * TILESIZE, 1.5 * TILESIZE],
   radius: (TILESIZE * MONSTER_SIZE) / 2,
   vel: [0, 0], // velocity unit - millitiles per frame
-  maxVel: 8.5,
+  maxVel: 10,
   acc: [0, 0],
   rotation: 0,
   images: [TEST_TILE_3],
@@ -17,12 +17,11 @@ function generateMonster() {
   let health = MONSTER_HEALTH;
   let damage = MONSTER_DAMAGE;
   let vel = [0, 0];
-  let maxVel = Math.random() * MONSTER_SPEED + 1;
+  let maxVel = Math.random() * MONSTER_SPEED + MONSTER_SPEED / 2;
   let acc = [0, 0];
-  let rotation = 0;
   let images = [monk];
   let distance = 0;
-  let angle = 0;
+  let rotation = 0;
   let hp = Math.random() * MONSTER_HEALTH + 2;
 
   let monster = {
@@ -33,10 +32,9 @@ function generateMonster() {
     vel,
     maxVel,
     acc,
-    rotation,
     images,
     distance,
-    angle,
+    rotation,
     hp,
   };
   return monster;
@@ -164,9 +162,6 @@ function generateMap() {
       for (let k = 0; k < map[i][j].length; k++) {
         // for every tileRow
         for (let l = 0; l < map[i][j][k].length; l++) {
-          // console.log(l);
-          // for every tile
-          // map[i][j][k][l].pos = [(l + 0.5) * TILESIZE, (k + 0.5) * TILESIZE];
           let name = map[i][j][k][l];
 
           switch (name) {
@@ -560,41 +555,41 @@ document.addEventListener("mousemove", (e) => {
 });
 
 document.addEventListener("mousedown", (event) => {
-  let monsterTarget;
-  let mouseAngle = Math.atan2(PLAYER.pos[0] - mouseX, PLAYER.pos[1] - mouseY);
-  monsters.forEach((monster) => {
-    let combinedAngle;
+  if (cooldownFrame === 0) {
+    let monsterTarget;
+    let mouseAngle = Math.atan2(PLAYER.pos[0] - mouseX, PLAYER.pos[1] - mouseY);
+    monsters.forEach((monster) => {
+      let combinedAngle;
+      let direction = -monster.rotation - Math.PI * 0.5;
+      if (direction < -Math.PI) {
+        direction += 2 * Math.PI;
+      }
+      combinedAngle = Math.abs(direction - mouseAngle);
 
-    monster.angle = Math.atan2(
-      PLAYER.pos[0] - monster.pos[0],
-      PLAYER.pos[1] - monster.pos[1]
-    );
-    monster.distance = Math.sqrt(
-      (PLAYER.pos[0] - monster.pos[0]) ** 2 +
-        (PLAYER.pos[1] - monster.pos[1]) ** 2
-    );
+      if (combinedAngle > Math.PI) {
+        combinedAngle = Math.PI * 2 - combinedAngle;
+      }
 
-    combinedAngle = Math.abs(monster.angle - mouseAngle);
+      if (
+        monster.distance < PLAYER_RANGE &&
+        combinedAngle - monster.distance / TILESIZE < 1
+      ) {
+        monsterTarget = monster;
+      }
+    });
+    if (monsterTarget) {
+      monsterTarget.hp -= 1;
 
-    if (combinedAngle > Math.PI) {
-      combinedAngle = Math.PI * 2 - combinedAngle;
-    }
-
-    if (
-      monster.distance < RANGE &&
-      combinedAngle - monster.distance / TILESIZE < 1
-    ) {
-      monsterTarget = monster;
-      console.log("DINMAMA");
-    }
-  });
-  if (monsterTarget) {
-    monsterTarget.hp -= 1;
-
-    console.log(monsterTarget);
-
-    if (monsterTarget.hp <= 0) {
-      monsters.pop(monsterTarget);
+      if (monsterTarget.hp <= 0) {
+        monsters.splice(
+          monsters.findIndex(function (monster) {
+            return monster === monsterTarget;
+          }),
+          1
+        );
+      }
+      cooldownFrame = 1;
+      PLAYER.images = [DOOR];
     }
   }
 });
@@ -798,6 +793,7 @@ function animate() {
 
   if (cooldownFrame >= COOLDOWN) {
     cooldownFrame = 0;
+    PLAYER.images = [TEST_TILE_3];
   }
 
   if (cooldownFrame > 0) {
@@ -820,7 +816,7 @@ function animate() {
   move(PLAYER);
   collision(PLAYER, ROOM);
   checkDoor(PLAYER, ROOM);
-  draw(PLAYER, "purple");
+  draw(PLAYER);
 
   // update monsters
   monsters.forEach((monster) => {
@@ -828,15 +824,23 @@ function animate() {
       monster.pos[1] - PLAYER.pos[1],
       monster.pos[0] - PLAYER.pos[0]
     );
+    monster.distance = Math.sqrt(
+      (PLAYER.pos[0] - monster.pos[0]) ** 2 +
+        (PLAYER.pos[1] - monster.pos[1]) ** 2
+    );
+
+    if (monster.distance < MONSTER_RANGE) {
+      console.log(monster.distance);
+    }
     move(monster);
     collision(monster, ROOM);
     draw(monster, "maroon");
   });
 
   // next frame
-  // setTimeout(() => {
-  requestAnimationFrame(animate);
-  // }, 1000 / FPS);
+  setTimeout(() => {
+    requestAnimationFrame(animate);
+  }, 1000 / FPS);
 }
 
 let monsters = [];
