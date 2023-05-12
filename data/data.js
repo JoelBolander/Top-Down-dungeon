@@ -24,6 +24,7 @@ const MONSTER_X = 0;
 const MONSTER_Y = 2 * TILESIZE;
 const MONSTER_HEALTH = 3;
 const MONSTER_DAMAGE = 10;
+const MONSTER_AMOUNT = 3;
 const HIT_RANGE = 0.8;
 const COOLDOWN = 90;
 let cooldownFrame = 0;
@@ -31,6 +32,8 @@ let currentRoomRow = 0;
 let currentRoomColumn = 0;
 const FPS = 90;
 const RANGE = 1.8 * TILESIZE;
+
+let monsters = [];
 
 const DOOR = new Image();
 const TEST_TILE_2 = new Image();

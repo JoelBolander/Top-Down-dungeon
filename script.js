@@ -10,9 +10,14 @@ const PLAYER = {
   images: [TEST_TILE_3],
 };
 
-function generateMonster() {
+function generateMonster(roomRow, roomCol) {
   // monsterPos = room.tiles[Math.random() * room.chunk.length]
-  let pos = [MONSTER_X, MONSTER_Y];
+  let pos = [
+    Math.random() * ROOMWIDTH * TILESIZE * CHUNK_WIDTH,
+    Math.random() * ROOMHEIGHT * TILESIZE * CHUNK_WIDTH,
+  ];
+  // console.log(pos);
+  // console.log(ROOMHEIGHT * CHUNK_WIDTH * TILESIZE);
   let radius = (TILESIZE * MONSTER_SIZE) / 2;
   let health = MONSTER_HEALTH;
   let damage = MONSTER_DAMAGE;
@@ -24,6 +29,7 @@ function generateMonster() {
   let distance = 0;
   let angle = 0;
   let hp = Math.random() * MONSTER_HEALTH + 2;
+  let room = [roomRow, roomCol];
 
   let monster = {
     pos,
@@ -38,6 +44,7 @@ function generateMonster() {
     distance,
     angle,
     hp,
+    room,
   };
   return monster;
 }
@@ -359,6 +366,7 @@ function generateRoom(map, roomRow, roomColumn) {
         }
       }
     }
+
     let BDoorCoords;
     let TDoorCoords;
     let RDoorCoords;
@@ -400,6 +408,7 @@ function generateRoom(map, roomRow, roomColumn) {
           findPath(actualroom, door2[0], door2[1], door4[0], door4[1]) &&
           findPath(actualroom, door4[0], door4[1], door1[0], door1[1])
         ) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       } else if (door1 && door2 && door3) {
@@ -407,6 +416,7 @@ function generateRoom(map, roomRow, roomColumn) {
           findPath(actualroom, door3[0], door3[1], door2[0], door2[1]) &&
           findPath(actualroom, door3[0], door3[1], door1[0], door1[1])
         ) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       } else if (door1 && door2 && door4) {
@@ -414,6 +424,7 @@ function generateRoom(map, roomRow, roomColumn) {
           findPath(actualroom, door4[0], door4[1], door2[0], door2[1]) &&
           findPath(actualroom, door4[0], door4[1], door1[0], door1[1])
         ) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       } else if (door1 && door4 && door3) {
@@ -421,6 +432,7 @@ function generateRoom(map, roomRow, roomColumn) {
           findPath(actualroom, door3[0], door3[1], door1[0], door1[1]) &&
           findPath(actualroom, door1[0], door1[1], door4[0], door4[1])
         ) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       } else if (door2 && door4 && door3) {
@@ -428,22 +440,27 @@ function generateRoom(map, roomRow, roomColumn) {
           findPath(actualroom, door3[0], door3[1], door2[0], door2[1]) &&
           findPath(actualroom, door2[0], door2[1], door4[0], door4[1])
         ) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       } else if (door1 && door3) {
         if (findPath(actualroom, door1[0], door1[1], door3[0], door3[1])) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       } else if (door1 && door4) {
         if (findPath(actualroom, door1[0], door1[1], door4[0], door4[1])) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       } else if (door2 && door4) {
         if (findPath(actualroom, door2[0], door2[1], door4[0], door4[1])) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       } else if (door2 && door3) {
         if (findPath(actualroom, door2[0], door2[1], door3[0], door3[1])) {
+          placeMonsters(actualroom, roomRow, roomColumn);
           return actualroom;
         }
       }
@@ -452,6 +469,62 @@ function generateRoom(map, roomRow, roomColumn) {
 }
 
 let map = generateMap();
+
+function placeMonsters(actualroom, roomRow, roomColumn) {
+  // generate monsters in rooms
+  for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
+    if (actualroom[ROOMHEIGHT * 4 - 1][searchIndex] === "d") {
+      BDoorCoords = [ROOMHEIGHT * 4 - 1, searchIndex];
+    }
+    if (actualroom[0][searchIndex] === "d") {
+      TDoorCoords = [0, searchIndex];
+    }
+  }
+  for (let searchIndex = 0; searchIndex < ROOMHEIGHT * 4; searchIndex++) {
+    if (actualroom[searchIndex][ROOMWIDTH * 4 - 1] === "d") {
+      RDoorCoords = [searchIndex, ROOMWIDTH * 4 - 1];
+    }
+    if (actualroom[searchIndex][0] === "d") {
+      LDoorCoords = [searchIndex, 0];
+    }
+  }
+
+  for (let monsterIndex = 0; monsterIndex < MONSTER_AMOUNT; monsterIndex++) {
+    let door_check;
+    let temp_monster;
+    if (roomRow == 0) {
+      door_check = BDoorCoords;
+    } else if (roomColumn == 0) {
+      door_check = RDoorCoords;
+    } else if (roomRow == ROOMWIDTH - 1) {
+      door_check = TDoorCoords;
+    } else if (roomRow == ROOMHEIGHT - 1) {
+      door_check = LDoorCoords;
+    } else {
+      door_check = LDoorCoords;
+    }
+
+    while (true) {
+      temp_monster = generateMonster(roomRow, roomColumn);
+      console.log(Math.floor(temp_monster.pos[1] / TILESIZE));
+      if (
+        actualroom[Math.floor(temp_monster.pos[1] / TILESIZE)][
+          Math.floor(temp_monster.pos[0] / TILESIZE)
+        ] == "g" &&
+        findPath(
+          actualroom,
+          door_check[0],
+          door_check[1],
+          Math.floor(temp_monster.pos[0] / TILESIZE),
+          Math.floor(temp_monster.pos[1] / TILESIZE)
+        )
+      ) {
+        monsters.push(temp_monster);
+        break;
+      }
+    }
+  }
+}
 
 function findPath(room, startRow, startCol, endRow, endCol) {
   const ROWS = room.length;
@@ -585,13 +658,10 @@ document.addEventListener("mousedown", (event) => {
       combinedAngle - monster.distance / TILESIZE < 1
     ) {
       monsterTarget = monster;
-      console.log("DINMAMA");
     }
   });
   if (monsterTarget) {
     monsterTarget.hp -= 1;
-
-    console.log(monsterTarget);
 
     if (monsterTarget.hp <= 0) {
       monsters.pop(monsterTarget);
@@ -824,24 +894,24 @@ function animate() {
 
   // update monsters
   monsters.forEach((monster) => {
-    monster.rotation = Math.atan2(
-      monster.pos[1] - PLAYER.pos[1],
-      monster.pos[0] - PLAYER.pos[0]
-    );
-    move(monster);
-    collision(monster, ROOM);
-    draw(monster, "maroon");
+    if (
+      monster.room[0] == currentRoomRow &&
+      monster.room[1] == currentRoomColumn
+    ) {
+      monster.rotation = Math.atan2(
+        monster.pos[1] - PLAYER.pos[1],
+        monster.pos[0] - PLAYER.pos[0]
+      );
+      move(monster);
+      collision(monster, ROOM);
+      draw(monster);
+    }
   });
 
   // next frame
-  // setTimeout(() => {
-  requestAnimationFrame(animate);
-  // }, 1000 / FPS);
-}
-
-let monsters = [];
-for (let i = 0; i < 4; i++) {
-  monsters.push(generateMonster([]));
+  setTimeout(() => {
+    requestAnimationFrame(animate);
+  }, 1000 / FPS);
 }
 
 animate();
