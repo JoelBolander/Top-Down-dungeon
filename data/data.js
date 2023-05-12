@@ -20,11 +20,9 @@ let mouseX = 0;
 let mouseY = 0;
 const MONSTER_SIZE = 0.8;
 const MONSTER_SPEED = 5;
-const MONSTER_X = 2 * TILESIZE;
-const MONSTER_Y = 2 * TILESIZE;
 const MONSTER_HEALTH = 3;
 const MONSTER_DAMAGE = 10;
-const MONSTER_AMOUNT = 3;
+const MONSTER_AMOUNT = 100;
 const HIT_RANGE = 0.8;
 const COOLDOWN = 30;
 let cooldownFrame = 0;
@@ -40,10 +38,12 @@ const DOOR = new Image();
 const TEST_TILE_2 = new Image();
 const TEST_TILE_3 = new Image();
 const monk = new Image();
+const steve = new Image();
 DOOR.src = "images/tiles/door.png";
 TEST_TILE_2.src = "images/tiles/dirt.png";
 TEST_TILE_3.src = "images/tiles/smooth-tile-1.png";
 monk.src = "images/Monk/monk.jpg";
+steve.src = "images/Monk/steve.png";
 
 let images = {
   Door: [TEST_TILE_2, DOOR],

@@ -7,7 +7,7 @@ const PLAYER = {
   maxVel: 10,
   acc: [0, 0],
   rotation: 0,
-  images: [TEST_TILE_3],
+  images: [steve],
 };
 
 function generateMonster(roomRow, roomCol) {
@@ -507,8 +507,8 @@ function placeMonsters(actualroom, roomRow, roomColumn) {
           actualroom,
           door_check[0],
           door_check[1],
-          Math.floor(temp_monster.pos[0] / TILESIZE),
-          Math.floor(temp_monster.pos[1] / TILESIZE)
+          Math.floor(temp_monster.pos[1] / TILESIZE),
+          Math.floor(temp_monster.pos[0] / TILESIZE)
         )
       ) {
         monsters.push(temp_monster);
@@ -659,7 +659,7 @@ document.addEventListener("mousedown", (event) => {
         );
       }
       cooldownFrame = 1;
-      PLAYER.images = [DOOR];
+      PLAYER.images = [steve];
     }
   }
 });
@@ -863,7 +863,7 @@ function animate() {
 
   if (cooldownFrame >= COOLDOWN) {
     cooldownFrame = 0;
-    PLAYER.images = [TEST_TILE_3];
+    PLAYER.images = [steve];
   }
 
   if (cooldownFrame > 0) {
