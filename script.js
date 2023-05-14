@@ -4,10 +4,13 @@ const PLAYER = {
   pos: [1.5 * TILESIZE, 1.5 * TILESIZE],
   radius: (TILESIZE * MONSTER_SIZE) / 2,
   vel: [0, 0], // velocity unit - millitiles per frame
-  maxVel: 10,
+  maxVel: PLAYER_SPEED,
   acc: [0, 0],
   rotation: 0,
   images: [steve],
+  cooldown: 0,
+  target: 0,
+  hp: 10,
 };
 
 function generateMonster(roomRow, roomCol) {
@@ -17,7 +20,6 @@ function generateMonster(roomRow, roomCol) {
     Math.random() * ROOMHEIGHT * TILESIZE * CHUNK_WIDTH,
   ];
   let radius = (TILESIZE * MONSTER_SIZE) / 2;
-  let health = MONSTER_HEALTH;
   let damage = MONSTER_DAMAGE;
   let vel = [0, 0];
   let maxVel = Math.random() * MONSTER_SPEED + MONSTER_SPEED / 2;
@@ -25,13 +27,14 @@ function generateMonster(roomRow, roomCol) {
   let images = [monk];
   let distance = 0;
   let rotation = 0;
-  let hp = Math.random() * MONSTER_HEALTH + 2;
+  let hp = Math.random() * MONSTER_HEALTH;
   let room = [roomRow, roomCol];
+  let timer = 0;
+  let cooldown = 0;
 
   let monster = {
     pos,
     radius,
-    health,
     damage,
     vel,
     maxVel,
@@ -41,6 +44,8 @@ function generateMonster(roomRow, roomCol) {
     rotation,
     hp,
     room,
+    timer,
+    cooldown,
   };
   return monster;
 }
@@ -461,8 +466,6 @@ function generateRoom(map, roomRow, roomColumn) {
   }
 }
 
-let map = generateMap();
-
 function placeMonsters(actualroom, roomRow, roomColumn) {
   // generate monsters in rooms
   for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
@@ -483,35 +486,35 @@ function placeMonsters(actualroom, roomRow, roomColumn) {
   }
 
   for (let monsterIndex = 0; monsterIndex < MONSTER_AMOUNT; monsterIndex++) {
-    let door_check;
-    let temp_monster;
+    let doorCheck;
+    let tempMonster;
     if (roomRow == 0) {
-      door_check = BDoorCoords;
+      doorCheck = BDoorCoords;
     } else if (roomColumn == 0) {
-      door_check = RDoorCoords;
+      doorCheck = RDoorCoords;
     } else if (roomRow == ROOMWIDTH - 1) {
-      door_check = TDoorCoords;
+      doorCheck = TDoorCoords;
     } else if (roomRow == ROOMHEIGHT - 1) {
-      door_check = LDoorCoords;
+      doorCheck = LDoorCoords;
     } else {
-      door_check = LDoorCoords;
+      doorCheck = LDoorCoords;
     }
 
     while (true) {
-      temp_monster = generateMonster(roomRow, roomColumn);
+      tempMonster = generateMonster(roomRow, roomColumn);
       if (
-        actualroom[Math.floor(temp_monster.pos[1] / TILESIZE)][
-          Math.floor(temp_monster.pos[0] / TILESIZE)
+        actualroom[Math.floor(tempMonster.pos[1] / TILESIZE)][
+          Math.floor(tempMonster.pos[0] / TILESIZE)
         ] == "g" &&
         findPath(
           actualroom,
-          door_check[0],
-          door_check[1],
-          Math.floor(temp_monster.pos[1] / TILESIZE),
-          Math.floor(temp_monster.pos[0] / TILESIZE)
+          doorCheck[0],
+          doorCheck[1],
+          Math.floor(tempMonster.pos[1] / TILESIZE),
+          Math.floor(tempMonster.pos[0] / TILESIZE)
         )
       ) {
-        monsters.push(temp_monster);
+        monsters.push(tempMonster);
         break;
       }
     }
@@ -556,113 +559,6 @@ function findPath(room, startRow, startCol, endRow, endCol) {
   }
   return explore(startRow, startCol);
 }
-
-document.addEventListener("keydown", (e) => {
-  if (e.repeat) {
-    return;
-  }
-  if (e.key === "w") {
-    PLAYER.up = true;
-  }
-  if (e.key === "a") {
-    PLAYER.left = true;
-  }
-  if (e.key === "s") {
-    PLAYER.down = true;
-  }
-  if (e.key === "d") {
-    PLAYER.right = true;
-  }
-  if (e.key === "i") {
-    if (currentRoomRow !== 0) {
-      currentRoomRow -= 1;
-    }
-  }
-  if (e.key === "j") {
-    if (currentRoomColumn !== 0) {
-      currentRoomColumn -= 1;
-    }
-  }
-  if (e.key === "k") {
-    if (currentRoomRow !== MAPSIZE - 1) {
-      currentRoomRow += 1;
-    }
-  }
-  if (e.key === "l") {
-    if (currentRoomColumn !== MAPSIZE - 1) {
-      currentRoomColumn += 1;
-    }
-  }
-});
-
-function topSecret() {
-  if (timer > 700) {
-    CTX.translate(CANVAS.width / 2, CANVAS.height / 2);
-    CTX.rotate(0.04);
-    CTX.translate(-CANVAS.width / 2, -CANVAS.height / 2);
-  }
-}
-
-document.addEventListener("keyup", (e) => {
-  if (e.key === "w") {
-    PLAYER.up = false;
-  }
-  if (e.key === "a") {
-    PLAYER.left = false;
-  }
-  if (e.key === "s") {
-    PLAYER.down = false;
-  }
-  if (e.key === "d") {
-    PLAYER.right = false;
-  }
-});
-
-document.addEventListener("mousemove", (e) => {
-  const CANVASRECT = CANVAS.getBoundingClientRect();
-  mouseX = (e.clientX - CANVASRECT.left) * RESOLUTION;
-  mouseY = (e.clientY - CANVASRECT.top) * RESOLUTION;
-});
-
-document.addEventListener("mousedown", (event) => {
-  if (cooldownFrame === 0) {
-    let monsterTarget;
-    let mouseAngle = Math.atan2(PLAYER.pos[0] - mouseX, PLAYER.pos[1] - mouseY);
-    monsters.forEach((monster) => {
-      let combinedAngle;
-      let direction = -monster.rotation - Math.PI * 0.5;
-      if (direction < -Math.PI) {
-        direction += 2 * Math.PI;
-      }
-      combinedAngle = Math.abs(direction - mouseAngle);
-
-      if (combinedAngle > Math.PI) {
-        combinedAngle = Math.PI * 2 - combinedAngle;
-      }
-
-      if (
-        monster.distance < PLAYER_RANGE &&
-        combinedAngle - monster.distance / TILESIZE < 1
-      ) {
-        monsterTarget = monster;
-      }
-    });
-    if (monsterTarget) {
-      monsterTarget.hp -= 1;
-
-      if (monsterTarget.hp <= 0) {
-        monsters.splice(
-          monsters.findIndex(function (monster) {
-            return monster === monsterTarget;
-          }),
-          1
-        );
-      }
-      cooldownFrame = 1;
-      PLAYER.images = [steve];
-    }
-  }
-});
 
 function checkDoor(player, room) {
   const PLAYER_POSITION = [
@@ -828,13 +724,6 @@ function draw(object) {
   CTX.save();
   CTX.translate(object.pos[0], object.pos[1]);
   CTX.rotate(object.rotation); // rotate canvas in order to draw player
-  // CTX.fillStyle = color;
-  // CTX.fillRect(
-  //   -object.radius,
-  //   -object.radius,
-  //   object.radius * 2,
-  //   object.radius * 2
-  // );
   object.images.forEach(function (image) {
     CTX.drawImage(
       image,
@@ -848,26 +737,144 @@ function draw(object) {
   CTX.restore(); // restore original canvas rotation
 }
 
+document.addEventListener("keydown", (e) => {
+  if (e.repeat) {
+    return;
+  }
+  if (e.key === "w") {
+    PLAYER.up = true;
+  }
+  if (e.key === "a") {
+    PLAYER.left = true;
+  }
+  if (e.key === "s") {
+    PLAYER.down = true;
+  }
+  if (e.key === "d") {
+    PLAYER.right = true;
+  }
+  if (e.key === "i") {
+    if (currentRoomRow !== 0) {
+      currentRoomRow -= 1;
+    }
+  }
+  if (e.key === "j") {
+    if (currentRoomColumn !== 0) {
+      currentRoomColumn -= 1;
+    }
+  }
+  if (e.key === "k") {
+    if (currentRoomRow !== MAPSIZE - 1) {
+      currentRoomRow += 1;
+    }
+  }
+  if (e.key === "l") {
+    if (currentRoomColumn !== MAPSIZE - 1) {
+      currentRoomColumn += 1;
+    }
+  }
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "w") {
+    PLAYER.up = false;
+  }
+  if (e.key === "a") {
+    PLAYER.left = false;
+  }
+  if (e.key === "s") {
+    PLAYER.down = false;
+  }
+  if (e.key === "d") {
+    PLAYER.right = false;
+  }
+});
+
+document.addEventListener("mousemove", (e) => {
+  const CANVASRECT = CANVAS.getBoundingClientRect();
+  mouseX = (e.clientX - CANVASRECT.left) * RESOLUTION;
+  mouseY = (e.clientY - CANVASRECT.top) * RESOLUTION;
+});
+
+document.addEventListener("mousedown", (e) => {
+  if (PLAYER.cooldown === 0) {
+    let monsterTarget;
+    let mouseAngle = Math.atan2(PLAYER.pos[0] - mouseX, PLAYER.pos[1] - mouseY);
+    monsters.forEach((monster) => {
+      if (
+        monster.room[0] == currentRoomRow &&
+        monster.room[1] == currentRoomColumn
+      ) {
+        let combinedAngle;
+        let direction = -monster.rotation - Math.PI * 0.5;
+        if (direction < -Math.PI) {
+          direction += 2 * Math.PI;
+        }
+        combinedAngle = Math.abs(direction - mouseAngle);
+
+        if (combinedAngle > Math.PI) {
+          combinedAngle = Math.PI * 2 - combinedAngle;
+        }
+
+        if (
+          monster.distance < PLAYER_RANGE &&
+          combinedAngle - monster.distance / TILESIZE < 1
+        ) {
+          monsterTarget = monster;
+        }
+      }
+    });
+    if (monsterTarget) {
+      monsterTarget.hp -= 1;
+      if (monsterTarget.hp <= 0) {
+        monsters.splice(
+          monsters.findIndex(function (monster) {
+            return monster === monsterTarget;
+          }),
+          1
+        );
+        PLAYER.images = [steve];
+      }
+      PLAYER.cooldown = 1;
+      monsterTarget.images = [DAMAGED];
+      PLAYER.target = monsterTarget;
+    }
+  }
+});
+
 // WARNING - SHOULD BE SET TO FALSE UNDER ALL CIRCUMSTANCES
 let secret = false; // DO NOT TOUCH
+let timer = 0;
 // WARNING - SHOULD BE SET TO FALSE UNDER ALL CIRCUMSTANCES
 
-let timer = 0;
+function topSecret() {
+  if (timer > 700) {
+    CTX.translate(CANVAS.width / 2, CANVAS.height / 2);
+    CTX.rotate(0.04);
+    CTX.translate(-CANVAS.width / 2, -CANVAS.height / 2);
+  }
+}
+
+let map = generateMap();
 
 function animate() {
+  if (PLAYER.hp <= 0) {
+    console.log("game over");
+  }
   const ROOM = map[currentRoomRow][currentRoomColumn];
   topSecret();
   if (secret) {
     timer++;
   }
 
-  if (cooldownFrame >= COOLDOWN) {
-    cooldownFrame = 0;
-    PLAYER.images = [steve];
+  if (PLAYER.cooldown >= PLAYER_COOLDOWN) {
+    PLAYER.cooldown = 0;
+    PLAYER.target.images = [monk];
+    PLAYER.target = 0;
   }
 
-  if (cooldownFrame > 0) {
-    cooldownFrame++;
+  if (PLAYER.cooldown > 0) {
+    PLAYER.cooldown++;
   }
 
   // clear canvas
@@ -903,8 +910,17 @@ function animate() {
           (PLAYER.pos[1] - monster.pos[1]) ** 2
       );
 
-      if (monster.distance < MONSTER_RANGE) {
-        console.log(monster.distance);
+      if (monster.cooldown === 0) {
+        if (monster.distance < MONSTER_RANGE) {
+          monster.cooldown = 1;
+          PLAYER.hp -= 1;
+          PLAYER.images = [DAMAGED];
+        }
+      } else if (monster.cooldown > MONSTER_COOLDOWN) {
+        monster.cooldown = 0;
+        PLAYER.images = [steve];
+      } else {
+        monster.cooldown++;
       }
       move(monster);
       collision(monster, ROOM);
