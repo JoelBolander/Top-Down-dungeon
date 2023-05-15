@@ -7,7 +7,7 @@ const PLAYER = {
   maxVel: PLAYER_SPEED,
   acc: [0, 0],
   rotation: 0,
-  images: [STEVE],
+  images: [CHARACTER_IMAGE],
   cooldown: 0,
   target: 0,
   hp: 10,
@@ -24,7 +24,7 @@ function generateMonster(roomRow, roomCol) {
   let vel = [0, 0];
   let maxVel = Math.random() * MONSTER_SPEED + MONSTER_SPEED / 2;
   let acc = [0, 0];
-  let images = [MONK];
+  let images = [MONKEY];
   let distance = 0;
   let rotation = 0;
   let hp = Math.random() * MONSTER_HEALTH;
@@ -850,10 +850,10 @@ document.addEventListener("mousedown", (e) => {
           }),
           1
         );
-        PLAYER.images = [STEVE];
+        PLAYER.images = [CHARACTER_IMAGE];
       }
       PLAYER.cooldown = 1;
-      monsterTarget.images = [DAMAGED];
+      monsterTarget.images = [MONKEY_DAMAGED];
       PLAYER.target = monsterTarget;
     }
   }
@@ -890,7 +890,7 @@ function animate() {
 
     if (PLAYER.cooldown >= PLAYER_COOLDOWN) {
       PLAYER.cooldown = 0;
-      PLAYER.target.images = [MONK];
+      PLAYER.target.images = [MONKEY];
       PLAYER.target = 0;
     }
 
@@ -947,11 +947,11 @@ function animate() {
           if (monster.distance < MONSTER_RANGE) {
             monster.cooldown = 1;
             PLAYER.hp -= 1;
-            PLAYER.images = [DAMAGED];
+            PLAYER.images = [PLAYER_DAMAGED];
           }
         } else if (monster.cooldown > MONSTER_COOLDOWN) {
           monster.cooldown = 0;
-          PLAYER.images = [STEVE];
+          PLAYER.images = [CHARACTER_IMAGE];
         } else {
           monster.cooldown++;
         }
