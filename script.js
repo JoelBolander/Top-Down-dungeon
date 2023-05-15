@@ -7,7 +7,7 @@ const PLAYER = {
   maxVel: PLAYER_SPEED,
   acc: [0, 0],
   rotation: 0,
-  images: [steve],
+  images: [STEVE],
   cooldown: 0,
   target: 0,
   hp: 10,
@@ -24,7 +24,7 @@ function generateMonster(roomRow, roomCol) {
   let vel = [0, 0];
   let maxVel = Math.random() * MONSTER_SPEED + MONSTER_SPEED / 2;
   let acc = [0, 0];
-  let images = [monk];
+  let images = [MONK];
   let distance = 0;
   let rotation = 0;
   let hp = Math.random() * MONSTER_HEALTH;
@@ -161,7 +161,11 @@ function generateMap() {
   for (let row = 0; row < MAPSIZE; row++) {
     map.push([]);
     for (let column = 0; column < MAPSIZE; column++) {
-      map[row].push(generateRoom(map, row, column));
+      if (row == 0 && column == 0) {
+        map[row].push(FIRST_ROOM);
+      } else {
+        map[row].push(generateRoom(map, row, column));
+      }
     }
   }
   // assign positions to each tile relative to their room
@@ -468,54 +472,57 @@ function generateRoom(map, roomRow, roomColumn) {
 
 function placeMonsters(actualroom, roomRow, roomColumn) {
   // generate monsters in rooms
-  for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
-    if (actualroom[ROOMHEIGHT * 4 - 1][searchIndex] === "d") {
-      BDoorCoords = [ROOMHEIGHT * 4 - 1, searchIndex];
-    }
-    if (actualroom[0][searchIndex] === "d") {
-      TDoorCoords = [0, searchIndex];
-    }
-  }
-  for (let searchIndex = 0; searchIndex < ROOMHEIGHT * 4; searchIndex++) {
-    if (actualroom[searchIndex][ROOMWIDTH * 4 - 1] === "d") {
-      RDoorCoords = [searchIndex, ROOMWIDTH * 4 - 1];
-    }
-    if (actualroom[searchIndex][0] === "d") {
-      LDoorCoords = [searchIndex, 0];
-    }
-  }
 
-  for (let monsterIndex = 0; monsterIndex < MONSTER_AMOUNT; monsterIndex++) {
-    let doorCheck;
-    let tempMonster;
-    if (roomRow == 0) {
-      doorCheck = BDoorCoords;
-    } else if (roomColumn == 0) {
-      doorCheck = RDoorCoords;
-    } else if (roomRow == ROOMWIDTH - 1) {
-      doorCheck = TDoorCoords;
-    } else if (roomRow == ROOMHEIGHT - 1) {
-      doorCheck = LDoorCoords;
-    } else {
-      doorCheck = LDoorCoords;
+  if (roomRow != 0 || roomColumn != 0) {
+    for (let searchIndex = 0; searchIndex < ROOMWIDTH * 4; searchIndex++) {
+      if (actualroom[ROOMHEIGHT * 4 - 1][searchIndex] === "d") {
+        BDoorCoords = [ROOMHEIGHT * 4 - 1, searchIndex];
+      }
+      if (actualroom[0][searchIndex] === "d") {
+        TDoorCoords = [0, searchIndex];
+      }
+    }
+    for (let searchIndex = 0; searchIndex < ROOMHEIGHT * 4; searchIndex++) {
+      if (actualroom[searchIndex][ROOMWIDTH * 4 - 1] === "d") {
+        RDoorCoords = [searchIndex, ROOMWIDTH * 4 - 1];
+      }
+      if (actualroom[searchIndex][0] === "d") {
+        LDoorCoords = [searchIndex, 0];
+      }
     }
 
-    while (true) {
-      tempMonster = generateMonster(roomRow, roomColumn);
-      if (
-        actualroom[Math.floor(tempMonster.pos[1] / TILESIZE)][
-          Math.floor(tempMonster.pos[0] / TILESIZE)
-        ] == "g" &&
-        findPath(
-          actualroom,
-          doorCheck[0],
-          doorCheck[1],
-          Math.floor(tempMonster.pos[1] / TILESIZE),
-          Math.floor(tempMonster.pos[0] / TILESIZE)
-        )
-      ) {
-        monsters.push(tempMonster);
-        break;
+    for (let monsterIndex = 0; monsterIndex < MONSTER_AMOUNT; monsterIndex++) {
+      let doorCheck;
+      let tempMonster;
+      if (roomRow == 0) {
+        doorCheck = BDoorCoords;
+      } else if (roomColumn == 0) {
+        doorCheck = RDoorCoords;
+      } else if (roomRow == ROOMWIDTH - 1) {
+        doorCheck = TDoorCoords;
+      } else if (roomRow == ROOMHEIGHT - 1) {
+        doorCheck = LDoorCoords;
+      } else {
+        doorCheck = LDoorCoords;
+      }
+
+      while (true) {
+        tempMonster = generateMonster(roomRow, roomColumn);
+        if (
+          actualroom[Math.floor(tempMonster.pos[1] / TILESIZE)][
+            Math.floor(tempMonster.pos[0] / TILESIZE)
+          ] == "g" &&
+          findPath(
+            actualroom,
+            doorCheck[0],
+            doorCheck[1],
+            Math.floor(tempMonster.pos[1] / TILESIZE),
+            Math.floor(tempMonster.pos[0] / TILESIZE)
+          )
+        ) {
+          monsters.push(tempMonster);
+          break;
+        }
       }
     }
   }
@@ -565,7 +572,11 @@ function checkDoor(player, room) {
     Math.floor(player.pos[0] / TILESIZE),
     Math.floor(player.pos[1] / TILESIZE),
   ];
-  if (room[PLAYER_POSITION[1]][PLAYER_POSITION[0]].name === "Door") {
+  if (
+    room[PLAYER_POSITION[1]][PLAYER_POSITION[0]].name === "Door" &&
+    completedRoom
+  ) {
+    completedRoom = false;
     if (PLAYER_POSITION[1] === 0) {
       currentRoomRow -= 1;
       player.pos[1] = (ROOMHEIGHT * 4 - 1) * TILESIZE;
@@ -602,7 +613,10 @@ function collision(object, room) {
     const TILE = room[TILE_POSITIONS[i][1]][TILE_POSITIONS[i][0]];
     const TILE_X = TILE_POSITIONS[i][0] * TILESIZE;
     const TILE_Y = TILE_POSITIONS[i][1] * TILESIZE;
-    if (TILE.name === "Wall") {
+    if (
+      TILE.name === "Wall" ||
+      (TILE.name === "Door" && completedRoom == false)
+    ) {
       // doing collisions for sides
       if (
         TILE_X + TILESIZE < object.pos[0] &&
@@ -738,6 +752,9 @@ function draw(object) {
 }
 
 document.addEventListener("keydown", (e) => {
+  if (isDead || isFinished) {
+    location.reload();
+  }
   if (e.repeat) {
     return;
   }
@@ -833,7 +850,7 @@ document.addEventListener("mousedown", (e) => {
           }),
           1
         );
-        PLAYER.images = [steve];
+        PLAYER.images = [STEVE];
       }
       PLAYER.cooldown = 1;
       monsterTarget.images = [DAMAGED];
@@ -859,75 +876,101 @@ let map = generateMap();
 
 function animate() {
   if (PLAYER.hp <= 0) {
-    console.log("game over");
+    isDead = true;
   }
-  const ROOM = map[currentRoomRow][currentRoomColumn];
-  topSecret();
-  if (secret) {
-    timer++;
+  if (monsters.length <= 0) {
+    isFinished = true;
   }
-
-  if (PLAYER.cooldown >= PLAYER_COOLDOWN) {
-    PLAYER.cooldown = 0;
-    PLAYER.target.images = [monk];
-    PLAYER.target = 0;
-  }
-
-  if (PLAYER.cooldown > 0) {
-    PLAYER.cooldown++;
-  }
-
-  // clear canvas
-  CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
-
-  // draw room
-  for (const ROW of ROOM) {
-    for (const TILE of ROW) {
-      draw(TILE);
+  if (!isDead && !isFinished) {
+    const ROOM = map[currentRoomRow][currentRoomColumn];
+    topSecret();
+    if (secret) {
+      timer++;
     }
-  }
 
-  // update player
-  PLAYER.rotation =
-    Math.atan2(PLAYER.pos[1] - mouseY, PLAYER.pos[0] - mouseX) - Math.PI / 2;
-  move(PLAYER);
-  collision(PLAYER, ROOM);
-  checkDoor(PLAYER, ROOM);
-  draw(PLAYER);
+    if (PLAYER.cooldown >= PLAYER_COOLDOWN) {
+      PLAYER.cooldown = 0;
+      PLAYER.target.images = [MONK];
+      PLAYER.target = 0;
+    }
 
-  // update monsters
-  monsters.forEach((monster) => {
-    if (
-      monster.room[0] == currentRoomRow &&
-      monster.room[1] == currentRoomColumn
-    ) {
-      monster.rotation = Math.atan2(
-        monster.pos[1] - PLAYER.pos[1],
-        monster.pos[0] - PLAYER.pos[0]
-      );
-      monster.distance = Math.sqrt(
-        (PLAYER.pos[0] - monster.pos[0]) ** 2 +
-          (PLAYER.pos[1] - monster.pos[1]) ** 2
-      );
+    if (PLAYER.cooldown > 0) {
+      PLAYER.cooldown++;
+    }
 
-      if (monster.cooldown === 0) {
-        if (monster.distance < MONSTER_RANGE) {
-          monster.cooldown = 1;
-          PLAYER.hp -= 1;
-          PLAYER.images = [DAMAGED];
-        }
-      } else if (monster.cooldown > MONSTER_COOLDOWN) {
-        monster.cooldown = 0;
-        PLAYER.images = [steve];
-      } else {
-        monster.cooldown++;
+    // clear canvas
+    CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
+
+    // draw room
+    for (const ROW of ROOM) {
+      for (const TILE of ROW) {
+        draw(TILE);
       }
-      move(monster);
-      collision(monster, ROOM);
-      draw(monster);
     }
-  });
 
+    // update player
+    PLAYER.rotation =
+      Math.atan2(PLAYER.pos[1] - mouseY, PLAYER.pos[0] - mouseX) - Math.PI / 2;
+    move(PLAYER);
+    collision(PLAYER, ROOM);
+    checkDoor(PLAYER, ROOM);
+    draw(PLAYER);
+
+    for (let monsterIndex = 0; monsterIndex < monsters.length; monsterIndex++) {
+      if (
+        monsters[monsterIndex].room[0] == currentRoomRow &&
+        monsters[monsterIndex].room[1] == currentRoomColumn
+      ) {
+        completedRoom = false;
+        break;
+      } else {
+        completedRoom = true;
+      }
+    }
+
+    // update monsters
+    monsters.forEach((monster) => {
+      if (
+        monster.room[0] == currentRoomRow &&
+        monster.room[1] == currentRoomColumn
+      ) {
+        monster.rotation = Math.atan2(
+          monster.pos[1] - PLAYER.pos[1],
+          monster.pos[0] - PLAYER.pos[0]
+        );
+        monster.distance = Math.sqrt(
+          (PLAYER.pos[0] - monster.pos[0]) ** 2 +
+            (PLAYER.pos[1] - monster.pos[1]) ** 2
+        );
+
+        if (monster.cooldown === 0) {
+          if (monster.distance < MONSTER_RANGE) {
+            monster.cooldown = 1;
+            PLAYER.hp -= 1;
+            PLAYER.images = [DAMAGED];
+          }
+        } else if (monster.cooldown > MONSTER_COOLDOWN) {
+          monster.cooldown = 0;
+          PLAYER.images = [STEVE];
+        } else {
+          monster.cooldown++;
+        }
+        move(monster);
+        collision(monster, ROOM);
+        draw(monster);
+      }
+    });
+  } else if (!isDead) {
+    CTX.drawImage(
+      WIN_SCREEN,
+      100,
+      100,
+      CANVAS.width - 200,
+      CANVAS.height - 200
+    );
+  } else {
+    CTX.drawImage(GAME_OVER, 100, 100, CANVAS.width - 200, CANVAS.height - 200);
+  }
   // next frame
   setTimeout(() => {
     requestAnimationFrame(animate);
