@@ -41,15 +41,19 @@ let monsters = [];
 const DOOR = new Image();
 const TEST_TILE_2 = new Image();
 const TEST_TILE_3 = new Image();
-const monk = new Image();
+const MONKEY = new Image();
 const steve = new Image();
-const DAMAGED = new Image();
+const PLAYER_DAMAGED = new Image();
+const MONKEY_DAMAGED = new Image();
+const CHARACTER_IMAGE = new Image();
 DOOR.src = "images/tiles/door.png";
 TEST_TILE_2.src = "images/tiles/dirt.png";
 TEST_TILE_3.src = "images/tiles/smooth-tile-1.png";
-monk.src = "images/characters/monk.jpg";
+MONKEY.src = "images/characters/monkey.png";
 steve.src = "images/characters/steve.png";
-DAMAGED.src = "images/characters/damage.png";
+PLAYER_DAMAGED.src = "images/characters/main-character-damage.png";
+MONKEY_DAMAGED.src = "images/characters/damage-monkey.png";
+CHARACTER_IMAGE.src = "images/characters/main-character.png";
 
 let images = {
   Door: [TEST_TILE_2, DOOR],
